@@ -9,7 +9,7 @@ use App\Http\Controllers\ThayronController;
 use App\Http\Controllers\MarcosController;
 use App\Http\Controllers\OsvaldoController;
 use App\Http\Controllers\LuisController;
-use App\Http\Controllers\StacyController;
+use App\Http\Controllers\MenuAdminController;
 use App\Http\Controllers\MiltonController;
 use App\Http\Controllers\KeylorController;
 
@@ -32,19 +32,19 @@ Route::prefix('productos-soda')->controller(ThayronController::class)->group(fun
 });
 
 Route::prefix('ticketes')->controller(MarcosController::class)->group(function () {
-    Route::match(['GET','POST'], '/{accion}/{id?}', 'resolver')->name('productos-soda');
+    Route::match(['GET','POST'], '/{accion}/{id?}', 'resolver')->name('ticketes-soda');
 });
 
 Route::prefix('generar-ticketes')->controller(OsvaldoController::class)->group(function () {
     Route::match(['GET','POST'], '/{accion}/{id?}', 'resolver')->name('generar-ticketes');
 });
 
-Route::prefix('menu-admin')->controller(LuisController::class)->group(function () {
-    Route::match(['GET','POST'], '/{accion}/{id?}', 'resolver')->name('menu-admin');
+Route::prefix('menu-site')->controller(LuisController::class)->group(function () {
+    Route::match(['GET','POST'], '/{accion}/{id?}', 'resolver')->name('menu-site');
 });
 
-Route::prefix('menu-site')->controller(StacyController::class)->group(function () {
-    Route::match(['GET','POST'], '/{accion}/{id?}', 'resolver')->name('menu-site');
+Route::prefix('menu-admin')->controller(MenuAdminController::class)->group(function () {
+    Route::match(['GET','POST'], '/{accion}/{id?}', 'resolver')->name('menu-admin');
 });
 
 Route::prefix('ventas')->controller(MiltonController::class)->group(function () {

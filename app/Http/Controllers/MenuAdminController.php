@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-class StacyController extends Controller
+class MenuAdminController extends Controller
 {
 
     public function resolver(Request $request, string $accion, ?string $id = null)
