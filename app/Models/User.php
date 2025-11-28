@@ -2,39 +2,39 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
     /**
-     * The attributes that are mass assignable.
+     * Los atributos que se pueden asignar en masa.
      *
      * @var list<string>
      */
-    protected $fillable = [
+        protected $fillable = [
         'name',
+        'rol',
         'email',
         'password',
+        'activo',
+        'reset_token',
+        'reset_token_date', 
     ];
-
     /**
-     * The attributes that should be hidden for serialization.
+     * Los atributos que deben ocultarse al serializar el modelo.
      *
      * @var list<string>
      */
     protected $hidden = [
         'password',
-        'remember_token',
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * Los atributos que deben convertirse a tipos nativos.
      *
      * @return array<string, string>
      */
@@ -42,7 +42,17 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'activo' => 'boolean',
+            'reset_token_date' => 'datetime', // ← FALTABA
         ];
+    }
+
+
+    /**
+     * Scope para obtener solo los usuarios activos.
+     */
+    public function scopeActivos($query)
+    {
+        return $query->where('activo', 1);
     }
 }

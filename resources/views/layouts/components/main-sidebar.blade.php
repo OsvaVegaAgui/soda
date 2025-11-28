@@ -130,6 +130,53 @@
 								</ul>
 							</li>
 
+							<li class="slide has-sub">
+								<a href="javascript:void(0);" class="side-menu__item">
+									<svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><path d="M128,120a40,40,0,1,0-40-40A40,40,0,0,0,128,120Zm0,16c-36.12,0-72,18.39-72,48v16a8,8,0,0,0,8,8H192a8,8,0,0,0,8-8V184C200,154.39,164.12,136,128,136Z" opacity="0.2"/><path d="M128,120a40,40,0,1,0-40-40A40,40,0,0,0,128,120Zm0,16c-36.12,0-72,18.39-72,48v16a8,8,0,0,0,8,8H192a8,8,0,0,0,8-8V184C200,154.39,164.12,136,128,136Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>
+									<span class="side-menu__label">Usuarios</span>
+									<i class="ri-arrow-right-s-line side-menu__angle"></i>
+								</a>
+								<ul class="slide-menu child1">
+									<li class="slide side-menu__label1">
+										<a href="javascript:void(0)">Usuarios</a>
+									</li>
+
+									<li class="slide {{ request()->is('usuarios/crear') ? 'active' : '' }}">
+										<a href="{{ route('usuarios', ['accion' => 'crear']) }}" class="side-menu__item">
+											<svg xmlns="http://www.w3.org/2000/svg" class="side-menu-doublemenu__icon" viewBox="0 0 256 256">
+												<path d="M128,120a40,40,0,1,0-40-40A40,40,0,0,0,128,120Zm40,64H168v24H136a8,8,0,0,0-8,8v16h16v24h24V232h24V216H200a8,8,0,0,0-8-8H168Z" opacity="0.2"></path>
+												<path d="M128,120a40,40,0,1,0-40-40A40,40,0,0,0,128,120Zm40,64H168v24H136a8,8,0,0,0-8,8v16h16v24h24V232h24V216H200a8,8,0,0,0-8-8H168Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"></path>
+											</svg>
+											Crear Usuario
+										</a>
+									</li>
+
+									<li class="slide {{ request()->is('usuarios/lista') ? 'active' : '' }}">
+										<a href="{{ route('usuarios', ['accion' => 'lista']) }}" class="side-menu__item">
+											<svg xmlns="http://www.w3.org/2000/svg" class="side-menu-doublemenu__icon" viewBox="0 0 256 256">
+												<path d="M16 48h224v16H16zm0 48h224v16H16zm0 48h224v16H16zm0 48h224v16H16z" opacity="0.2"></path>
+												<path d="M16 48h224v16H16zm0 48h224v16H16zm0 48h224v16H16zm0 48h224v16H16z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"></path>
+											</svg>
+											Lista de Usuarios
+										</a>
+									</li>
+
+
+									<li class="slide {{ request()->is('usuarios/login') ? 'active' : '' }}">
+										<a href="{{ route('usuarios', ['accion' => 'login']) }}" class="side-menu__item">
+											<svg xmlns="http://www.w3.org/2000/svg" class="side-menu-doublemenu__icon" viewBox="0 0 256 256">
+												<path d="M128 24a56 56 0 1 1-56 56A56 56 0 0 1 128 24Z" opacity="0.2"></path>
+												<path d="M200 232H56a8 8 0 0 1-8-8v-16a40 40 0 0 1 40-40h80a40 40 0 0 1 40 40v16A8 8 0 0 1 200 232Zm-72-96a72 72 0 1 0-72-72A72 72 0 0 0 128 136Z"
+													fill="none" stroke="currentColor" stroke-linecap="round"
+													stroke-linejoin="round" stroke-width="16"></path>
+											</svg>
+											Iniciar Sesión
+										</a>
+									</li>
+
+								</ul>
+							</li>
+
 						</ul>
 						<ul class="doublemenu_bottom-menu main-menu mb-0 border-top">
 							
