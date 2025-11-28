@@ -133,7 +133,7 @@ export default defineConfig({
                 'resources/assets/js/validation',
                 'resources/assets/js/widgets',
                 'resources/assets/js/stacy',
-                
+                'resources/assets/js/productos-soda2',
             ],
             refresh: true,
         }),
