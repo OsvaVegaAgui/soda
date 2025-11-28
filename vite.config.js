@@ -15,6 +15,10 @@ export default defineConfig({
                 'resources/js/app.js',
   
                 // Resources assets js file paths
+
+                'resources/assets/js/milton/crear-venta.js',
+                'resources/assets/js/milton/lista-venta.js',
+                'resources/assets/js/milton/ver-venta.js',
                 'resources/assets/js/add-products',
                 'resources/assets/js/alerts',
                 'resources/assets/js/analytics-dashboard',
@@ -132,7 +136,8 @@ export default defineConfig({
                 'resources/assets/js/us-merc-en',
                 'resources/assets/js/validation',
                 'resources/assets/js/widgets',
-                
+                'resources/assets/js/stacy',
+                'resources/assets/js/productos-soda2',
             ],
             refresh: true,
         }),

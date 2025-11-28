@@ -44,7 +44,7 @@ Route::prefix('menu-site')->controller(LuisController::class)->group(function ()
 });
 
 Route::prefix('menu-admin')->controller(MenuAdminController::class)->group(function () {
-    Route::match(['GET','POST'], '/{accion}/{id?}', 'resolver')->name('menu-admin');
+    Route::match(['GET','POST'], '/{accion}/{id?}', 'resolver')->name('menu_admin');
 });
 
 Route::prefix('ventas')->controller(MiltonController::class)->group(function () {
