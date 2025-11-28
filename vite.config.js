@@ -10,10 +10,11 @@ export default defineConfig({
     plugins: [
         laravel({
             input: [
-                'resources/css/app.css', 
-                'resources/sass/app.scss', 
+                'resources/css/app.css',
+                'resources/sass/app.scss',
                 'resources/js/app.js',
-  
+                'resources/assets/css/estilos.css',
+
                 // Resources assets js file paths
                 'resources/assets/js/add-products',
                 'resources/assets/js/alerts',
@@ -132,7 +133,8 @@ export default defineConfig({
                 'resources/assets/js/us-merc-en',
                 'resources/assets/js/validation',
                 'resources/assets/js/widgets',
-                
+                'resources/assets/js/ticket'
+
             ],
             refresh: true,
         }),
@@ -165,17 +167,17 @@ export default defineConfig({
               }
             ]
         }),
-  
+
         {
           // Use a custom plugin for copying distribution files
           name: 'copy-dist-files',
           writeBundle: async () => {
             const destDir = 'public/build/assets/libs';  // Update the destination directory
-    
+
             for (const dep of Object.keys(packages.dependencies)) {
               const srcPath = join('node_modules', dep, 'dist');
               const destPath = join(destDir, dep);
-    
+
               // Check if the 'dist' directory exists for the dependency
               if (await fsExtra.pathExists(srcPath)) {
                 // Copy the distribution files (contents of 'dist') to the destination directory
@@ -183,14 +185,14 @@ export default defineConfig({
                   overwrite: true,
                   recursive: true,
                 });
-    
+
                 // Remove the 'dist' directory from the destination
                 await fsExtra.remove(join(destPath, 'dist'));
               } else {
                 // If 'dist' folder doesn't exist, check if the package itself exists and copy it.
                 const packageSrcPath = join('node_modules', dep);
                 const packageDestPath = join(destDir, dep);
-    
+
                 if (await fsExtra.pathExists(packageSrcPath)) {
                   await fsExtra.copy(packageSrcPath, packageDestPath, {
                     overwrite: true,
@@ -201,7 +203,7 @@ export default defineConfig({
             }
           },
         },
-  
+
         {
           name: 'blade',
           handleHotUpdate({ file, server }) {

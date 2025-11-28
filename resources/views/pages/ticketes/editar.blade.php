@@ -16,48 +16,42 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.3.0/css/responsive.bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.bootstrap5.min.css">
 
-    @vite('resources/assets/css/estilos.css')
-
-
 @endsection
 
 @section('content')
-<div class="row">
-    <div class="col-xl-12">
-        <div class="card custom-card">
-            <div class="card-header justify-content-between">
-                <div class="card-title">
-                    Formulario: Crear Ticket
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="card custom-card">
+                <div class="card-header justify-content-between">
+                    <div class="card-title">
+                        Form editar ticket
+                    </div>
                 </div>
-            </div>
                 <div class="card-body">
-                    <form id="formCrear" method="POST" action="{{ route('ticketes-soda', ['accion' => 'insertar']) }}">
+                    <form id="formEditar" method="POST"
+                    action="{{ route('ticketes-soda', ['accion' => 'editar', 'id' => $ticket->id_ticket]) }}">
                     @csrf
-                        <div class="row">
-
+                    <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Nombre ticket</label>
-                            <input type="text" class="form-control" id="nombre" name="nombre" placeholder="nombre">
+                            <input type="text" class="form-control" id="nombre" name="nombre" placeholder="nombre" aria-label="nombre" value="{{ old('nombre', $ticket->nombre) }}">
                         </div>
-
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Código ticket</label>
-                            <input type="text" class="form-control" id="codigo" name="codigo" placeholder="codigo">
+                            <label class="form-label">Codigo ticket</label>
+                            <input type="text" name="codigo" id="codigo" placeholder="codigo" aria-label="codigo" value="{{ old('codigo', $ticket->codigo) }}">
                         </div>
-
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Precio ticket</label>
-                            <input type="number" class="form-control" id="precio" name="precio" placeholder="precio">
+                            <input type="number" class="form-control" id="precio" name="precio" placeholder="precio" aria-label="precio" value="{{ old('precio', $ticket->precio) }}">
                         </div>
-
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Cantidad ticket</label>
-                            <input type="number" class="form-control" id="cantidad" name="cantidad" placeholder="cantidad">
+                            <input type="number" id="cantidad" name="cantidad" class="form-control" placeholder="cantidad" aria-label="cantidad" value="{{ old('cantidad', $ticket->cantidad) }}">
                         </div>
 
                         <div class="col-12 mb-3">
                             <label for="categoria" class="form-label">Categoría de ticket</label>
-                            <select class=" form-select" name="categoria_id" id="categoria_id">
+                            <select class=" form-select" name="categoria_id" id="categoria_id" value="{{ old('categoria_id', $ticket->categoria_id) }}">
                                 @foreach ($config as $categoria)
                                     <option value="{{ $categoria->id_categoria }}">{{ $categoria->nombre }}</option>
                                 @endforeach
@@ -66,36 +60,31 @@
 
                         <div class="col-12 mb-3">
                             <label for="categoriaInst" class="form-label">Categoría Instituto</label>
-                            <select class=" form-select" name="categoriaInst" id="categoriaInst">
+                            <select class=" form-select" name="categoriaInst" id="categoriaInst" value="{{ old('categoriaInst', $ticket->categoria_instituto_id) }}">
                                 @foreach ($categoriaInstituto as $categoriainst)
                                     <option value="{{ $categoriainst->id_categoria_inst }}">{{ $categoriainst->nombre }}</option>
                                 @endforeach
                             </select>
                         </div>
                     </div>
-                </div>
 
-                <div class="card-footer border-top-0">
-                    <div class="col-md-12 text-center">
-                        <button type="submit" class="btn btn-primary" id="enviar">Subir</button>
+
+                    <div class="card-footer d-none border-top-0">
+
+                    </div>
+                    <div class="card-footer border-top-0">
+                        <div class="col-md-12 text-center">
+                            <button type="submit" class="btn btn-primary" id="enviar">Subir</button>
+                        </div>
+                    </form>
+                    <div style="display: none" id="mensaje" class="alert alert-info" role="alert">
+                        <strong>Información</strong> almacenada satisfactoriamente.
                     </div>
                 </div>
-            </form>
 
-            <div id="respuesta" class="mt-3"></div>
-            <div style="display: none" id="mensaje" class="alert alert-info" role="alert">
-                <strong>Información</strong> almacenada satisfactoriamente.
-            </div>
-            <div style="display: none" id="mensaje-dinamico" class="mensaje-exito" role="alert">
-                <span class="icono">ℹ️</span>
-                <strong>Información:</strong> almacenada satisfactoriamente.
             </div>
         </div>
-
     </div>
-
-</div>
-
 @endsection
 
 @section('scripts')
@@ -129,9 +118,8 @@
 
 
 
-    @vite('resources/assets/js/datatables.js');
+    @vite('resources/assets/js/datatables.js')
 
     @vite('resources/assets/js/ticket.js');
 
 @endsection
-
