@@ -139,6 +139,7 @@ export default defineConfig({
                 'resources/assets/js/usuarios',
                 
                 'resources/assets/js/stacy',
+                'resources/assets/js/paises',
                 'resources/assets/js/productos-soda2',
             ],
             refresh: true,

@@ -5,6 +5,11 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use App\Models\ProductoSoda;
 
+use App\Http\Controllers\RicardoController;
+
+
+
+
 class ThayronController extends Controller{
     public function resolver(Request $request, string $accion, ?string $id = null)
     {
@@ -57,7 +62,13 @@ class ThayronController extends Controller{
 
         // Crear el registro
         ProductoSoda::create($validated);
+        $producto = ProductoSoda::create($validated);
 
+
+        $ultimoId = $producto->id; 
+
+        $auditoria = new RicardoController();
+        $auditoria->insertar(1,"productos_soda",$ultimoId,"create","NA","fanta");
         // Si es una solicitud AJAX (fetch)
         if ($request->ajax()) {
             return response()->json([
@@ -117,6 +128,8 @@ class ThayronController extends Controller{
             $soda->precio              = $request->input('precio');
             $soda->activo              = $request->input('activo');
             $soda->save();
+
+            
 
            return response()->json([
                 'ok'       => true,

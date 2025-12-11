@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class RicardoController extends Controller
 {
@@ -19,9 +20,18 @@ class RicardoController extends Controller
         }
     }
 
-    protected function crear()
+    public function insertar($user_id, $tabla, $registro_id, $accion, $valores_antes, $valores_despues)
     {
-        return view('pages.productos_cocina.crear');
+        DB::table('auditoria')->insert([
+            'user_id' => $user_id,
+            'tabla' => $tabla,
+            'registro_id' => $registro_id,
+            'accion' => $accion,
+            'valores_antes' => $valores_antes,
+            'valores_despues' => $valores_despues
+            // 'created_at' => now(),
+            // 'updated_at' => now(),
+        ]);
     }
 
 
