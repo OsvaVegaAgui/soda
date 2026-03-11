@@ -2,63 +2,61 @@
 
 @section('content')
 <div class="row">
-    <div class="col-xl-12">
+    <div class="col-xl-10 mx-auto">
         <div class="card custom-card">
             <div class="card-header justify-content-between">
                 <div class="card-title">
                     Editar Menú de {{ ucfirst($tipo) }}
                 </div>
+                <a href="{{ route('menu_admin', ['accion' => 'seleccionar']) }}" class="btn btn-sm btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
             </div>
 
             <div class="card-body">
-                @if(session('success'))
-                    <div class="alert alert-success">{{ session('success') }}</div>
-                @elseif(session('error'))
-                    <div class="alert alert-danger">{{ session('error') }}</div>
-                @endif
+                <div id="mensaje" class="alert mb-3" style="display:none" role="alert"></div>
 
-               <form id="formEditar" method="POST" action="{{ route('menu_admin', ['accion' => 'actualizar']) }}">
+                <form id="formEditar" method="POST" action="{{ route('menu_admin', ['accion' => 'actualizar']) }}">
                     @csrf
                     <input type="hidden" name="tipo" value="{{ $tipo }}">
 
-                    <div class="row">
-                        <div class="col-md-6 mb-2">
-                            <label class="form-label fw-bold">Día</label>
+                    <div class="row align-items-center mb-2">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold mb-0">Día</label>
                         </div>
-                        <div class="col-md-6 mb-2">
-                            <label class="form-label fw-bold">Platillo</label>
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold mb-0">Platillo</label>
                         </div>
-
-                        @foreach($dias as $dia)
-                            <div class="col-md-6 mb-3">
-                                <input type="text" class="form-control" value="{{ $dia->dia }}" readonly>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <textarea name="menu[{{ $dia->id_desayuno ?? $dia->id_almuerzo ?? $dia->id_refrigerio }}]" class="form-control"rows="1" >{{ $dia->platillo }}</textarea>
-                            </div> 
-                        @endforeach
                     </div>
 
-                    <div class="text-center">
-                        <button type="submit" class="btn btn-primary">Guardar</button>
-                        <a href="{{ route('menu_admin', ['accion' => 'seleccionar']) }}" class="btn btn-secondary">Volver</a>
+                    @foreach($dias as $dia)
+                        <div class="row align-items-center mb-3">
+                            <div class="col-md-4">
+                                <input type="text" class="form-control fw-semibold" value="{{ $dia->dia }}" readonly>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text"
+                                       name="menu[{{ $dia->getKey() }}]"
+                                       class="form-control"
+                                       value="{{ $dia->platillo }}"
+                                       required
+                                       placeholder="Ingrese el platillo del día...">
+                            </div>
+                        </div>
+                    @endforeach
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-1"></i> Guardar cambios
+                        </button>
                     </div>
                 </form>
-            </div>
-
-            <div class="card-footer text-muted text-center">
-                Sistema de gestión de menús
             </div>
         </div>
     </div>
 </div>
-<div id="mensaje" style="display:none" class="alert alert-info">
-    <strong id="msgTitle"></strong> <span id="msgText"></span>
-</div>
-
 @endsection
-@section('scripts')
-        
-   @vite('resources/assets/js/stacy.js')
 
+@section('scripts')
+    @vite('resources/assets/js/stacy.js')
 @endsection

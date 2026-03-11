@@ -10,21 +10,20 @@ return new class extends Migration
     {
         Schema::create('historial_tiquetes', function (Blueprint $table) {
             $table->id('id_historial');
-
-            // 👇 Debe ser INTEGER, porque en `ticket` también es INTEGER
-            $table->integer('id_ticket');
-
+            $table->unsignedBigInteger('id_ticket');
+            $table->unsignedBigInteger('user_id');
             $table->integer('cantidad_impresa');
-            $table->string('usuario')->nullable();
             $table->timestamp('fecha_impresion')->useCurrent();
 
-            $table->timestamps();
-
-            // LLAVE FORÁNEA
             $table->foreign('id_ticket')
-                ->references('id_ticket')
-                ->on('ticket')
-                ->cascadeOnDelete();
+                  ->references('id_ticket')->on('ticket')
+                  ->cascadeOnUpdate()
+                  ->cascadeOnDelete();
+
+            $table->foreign('user_id')
+                  ->references('id')->on('users')
+                  ->cascadeOnUpdate()
+                  ->restrictOnDelete();
         });
     }
 

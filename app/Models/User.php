@@ -10,49 +10,47 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    /**
-     * Los atributos que se pueden asignar en masa.
-     *
-     * @var list<string>
-     */
-        protected $fillable = [
+    protected $fillable = [
         'name',
         'rol',
         'email',
         'password',
         'activo',
         'reset_token',
-        'reset_token_date', 
-    ];
-    /**
-     * Los atributos que deben ocultarse al serializar el modelo.
-     *
-     * @var list<string>
-     */
-    protected $hidden = [
-        'password',
+        'reset_token_date',
     ];
 
-    /**
-     * Los atributos que deben convertirse a tipos nativos.
-     *
-     * @return array<string, string>
-     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
-            'activo' => 'boolean',
-            'reset_token_date' => 'datetime', // ← FALTABA
+            'activo'            => 'boolean',
+            'reset_token_date'  => 'datetime',
         ];
     }
 
-
-    /**
-     * Scope para obtener solo los usuarios activos.
-     */
     public function scopeActivos($query)
     {
-        return $query->where('activo', 1);
+        return $query->where('activo', true);
+    }
+
+    public function ventas()
+    {
+        return $this->hasMany(Venta::class, 'user_id', 'id');
+    }
+
+    public function historialTiquetes()
+    {
+        return $this->hasMany(HistorialTiquetes::class, 'user_id', 'id');
+    }
+
+    public function auditoria()
+    {
+        return $this->hasMany(Auditoria::class, 'user_id', 'id');
     }
 }

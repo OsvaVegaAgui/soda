@@ -7,25 +7,27 @@ use Illuminate\Database\Eloquent\Model;
 class Venta extends Model
 {
     protected $table = 'ventas';
-    protected $primaryKey = 'id';
 
     protected $fillable = [
-        'fecha', 'user_id',
+        'fecha',
+        'user_id',
+        'total',
+        'metodo_pago',
+        'monto_efectivo',
+        'vuelto',
     ];
 
     protected $casts = [
         'fecha' => 'date',
     ];
 
-    // Venta pertenece a un usuario (App\Models\User por convención)
     public function user()
     {
-        return $this->belongsTo(\App\Models\User::class, 'user_id', 'id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
-    // Una venta tiene muchos detalles
     public function detalles()
     {
-        return $this->hasMany(DetalleVenta::class, 'venta_id', 'id');
+        return $this->hasMany(DetalleVenta::class, 'venta_id');
     }
 }

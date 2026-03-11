@@ -4,286 +4,544 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator; // para validar los datos
+use Illuminate\Support\Facades\Validator;
 use App\Models\Venta;
 use App\Models\User;
 use App\Models\DetalleVenta;
 use App\Models\ProductoSoda;
 use App\Models\Ticket;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
+
 class MiltonController extends Controller
 {
-    /**
-     * Método principal que resuelve las acciones dinámicas de ventas
-     * Recibe la acción y opcionalmente un ID
-     */
     public function resolver(Request $request, string $accion, ?string $id = null)
     {
-        // Convertir el ID si viene como string
         if ($id !== null) {
             $id = strtolower($id) === 'null' ? null : (ctype_digit($id) ? (int) $id : $id);
         }
 
-        // Switch para manejar las diferentes acciones
         switch ($accion) {
-            case 'crear':
-                // Si es POST, guardar la venta
-                if ($request->isMethod('post')) {
-                    return $this->guardar($request);
-                }
-                // Si es GET, mostrar el formulario
-                return $this->crear();
-            
+            case 'registrar':
+                return $this->registrar($request);
+            case 'agregar':
+                return $this->agregar($request);
+            case 'quitar':
+                return $this->quitar($request);
             case 'lista':
-                return $this->lista();
-            
+                return $this->lista($request);
             case 'ver':
-                // Ver detalles de una venta específica
-                if ($id === null) {
-                    return redirect()->route('ventas', ['accion' => 'lista']);
-                }
+                if ($id === null) return redirect()->route('ventas', ['accion' => 'lista']);
                 return $this->ver($id);
-            
             case 'buscar-producto':
-                // Buscar producto por código
                 return $this->buscarProducto($request);
-            
+            case 'crear':
+                return redirect()->route('ventas', ['accion' => 'cobrar']);
+            // ── POS (cobro por transacción) ───────────────────────────────────
+            case 'cobrar':
+                return $this->cobrar();
+            case 'pos-agregar':
+                return $this->posAgregar($request);
+            case 'pos-quitar':
+                return $this->posQuitar($request);
+            case 'pos-procesar':
+                return $this->posProcesar($request);
+            case 'pos-limpiar':
+                return $this->posLimpiar();
+            case 'reporte':
+                return $this->reporte($request);
+            case 'reporte-pdf':
+                return $this->reportePdf($request);
             default:
-                // Si la acción no existe, redirigir a la lista
-                return redirect()->route('ventas', ['accion' => 'lista']);
+                return redirect()->route('ventas', ['accion' => 'registrar']);
         }
     }
 
-    /**
-     * Muestra el formulario para crear una nueva venta
-     */
-    protected function crear()
+    // ── Resumen del día: ítems vendidos agrupados ─────────────────────────────
+    protected function registrar(Request $request)
     {
-        return view('pages.ventas.crear');
+        $fecha = $request->input('fecha', now()->toDateString());
+
+        $ventaIds = Venta::where('fecha', $fecha)->pluck('id');
+
+        $items = DetalleVenta::whereIn('venta_id', $ventaIds)
+            ->selectRaw('codigo, nombre, SUM(cantidad_vendida) as total_cantidad, SUM(subtotal) as total_monto')
+            ->groupBy('codigo', 'nombre')
+            ->orderBy('nombre')
+            ->get();
+
+        $totalGeneral = $items->sum('total_monto');
+
+        return view('pages.ventas.registrar', compact('items', 'fecha', 'totalGeneral'));
     }
 
-    /**
-     * Guarda una nueva venta con sus detalles
-     */
-    protected function guardar(Request $request)
+    // ── Agregar o incrementar un producto (AJAX) ──────────────────────────────
+    protected function agregar(Request $request)
     {
-        // Validar los datos recibidos
-        $request->validate([
-            'fecha' => 'required|date',
-            'detalles' => 'required|array|min:1',
-            'detalles.*.codigo' => 'required|string|max:50',
-            'detalles.*.cantidad_vendida' => 'required|integer|min:1',
-            'detalles.*.precio_unitario' => 'required|numeric|min:0',
-        ]);
+        $codigo = trim($request->input('codigo', ''));
 
-        // Iniciar transacción para asegurar que todo se guarde correctamente
-        try {
-            DB::beginTransaction();
+        if ($codigo === '') {
+            return response()->json(['ok' => false, 'message' => 'Código vacío.'], 422);
+        }
 
-            // Obtener el ID del usuario autenticado o usar el primero disponible
-            $userId = auth()->id();
-            if (!$userId) {
-                // Si no hay usuario autenticado, buscar el primer usuario disponible
-                $firstUser = \App\Models\User::first();
-                if ($firstUser) {
-                    $userId = $firstUser->id;
-                } else {
-                    // Si no hay usuarios, crear uno temporal o retornar error
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Error: No hay usuarios en la base de datos. Por favor, cree al menos un usuario primero.'
-                    ], 500);
-                }
-            }
+        $producto = $this->encontrarProducto($codigo);
 
-            // Crear la venta
-            $venta = new Venta();
-            $venta->fecha = $request->fecha;
-            $venta->user_id = $userId;
-            $venta->save();
+        if (!$producto) {
+            return response()->json(['ok' => false, 'message' => 'Producto no encontrado.'], 404);
+        }
 
-            // Crear los detalles de la venta
-            foreach ($request->detalles as $detalleData) {
-                // Calcular el subtotal
-                $subtotal = $detalleData['cantidad_vendida'] * $detalleData['precio_unitario'];
+        $hoy   = now()->toDateString();
+        $venta = Venta::firstOrCreate(
+            ['fecha' => $hoy],
+            ['user_id' => auth()->id()]
+        );
 
-                $detalle = new DetalleVenta();
-                $detalle->venta_id = $venta->id;
-                $detalle->codigo = $detalleData['codigo'];
-                $detalle->cantidad_vendida = $detalleData['cantidad_vendida'];
-                $detalle->precio_unitario = $detalleData['precio_unitario'];
-                $detalle->subtotal = $subtotal;
-                $detalle->save();
-            }
+        $detalle = DetalleVenta::where('venta_id', $venta->id)
+            ->where('codigo', $producto['codigo'])
+            ->first();
 
-            // Confirmar la transacción
-            DB::commit();
-
-            // Retornar respuesta JSON para SweetAlert
-            return response()->json([
-                'success' => true,
-                'message' => 'Venta guardada correctamente',
-                'venta_id' => $venta->id
+        if ($detalle) {
+            $detalle->cantidad_vendida++;
+            $detalle->subtotal = $detalle->cantidad_vendida * $detalle->precio_unitario;
+            $detalle->save();
+        } else {
+            $detalle = DetalleVenta::create([
+                'venta_id'         => $venta->id,
+                'codigo'           => $producto['codigo'],
+                'nombre'           => $producto['nombre'],
+                'cantidad_vendida' => 1,
+                'precio_unitario'  => $producto['precio'],
+                'subtotal'         => $producto['precio'],
             ]);
-
-        } catch (\Exception $e) {
-            // Revertir la transacción en caso de error
-            DB::rollBack();
-            
-            // Retornar error
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al guardar la venta: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Muestra la lista de todas las ventas
-     */
-    protected function lista()
-    {
-        // Obtener todas las ventas con sus relaciones (usuario y detalles)
-        $ventas = Venta::with(['user', 'detalles'])
-            ->orderBy('fecha', 'desc')
-            ->get();
-        
-        return view('pages.ventas.lista', compact('ventas'));
-    }
-
-    /**
-     * Muestra los detalles de una venta específica
-     */
-    protected function ver($id)
-    {
-        // Buscar la venta con su usuario
-        $venta = Venta::with(['user'])->find($id);
-        
-        // Si no existe la venta, redirigir a la lista
-        if (!$venta) {
-            return redirect()->route('ventas', ['accion' => 'lista'])
-                ->with('error', 'Venta no encontrada');
         }
 
-        // Cargar detalles con el nombre proveniente del catálogo correspondiente
-        $detalles = DetalleVenta::query()
-            ->where('venta_id', $venta->id)
-            ->leftJoin('productos_soda as ps', 'ps.codigo_softland', '=', 'detalle_venta.codigo')
-            ->leftJoin('ticket as tk', 'tk.codigo', '=', 'detalle_venta.codigo')
-            ->select(
-                'detalle_venta.*',
-                DB::raw("COALESCE(ps.nombre, tk.nombre) as nombre_producto")
-            )
-            ->get();
-
-        $venta->setRelation('detalles', $detalles);
-        
-        return view('pages.ventas.ver', compact('venta'));
+        return response()->json([
+            'ok'      => true,
+            'message' => $producto['nombre'] . ' agregado.',
+            'detalle' => [
+                'id'               => $detalle->id,
+                'codigo'           => $detalle->codigo,
+                'nombre'           => $detalle->nombre,
+                'cantidad_vendida' => $detalle->cantidad_vendida,
+            ],
+        ]);
     }
 
-    /**
-     * Busca productos para el selector remoto o por código exacto.
-     */
+    // ── Decrementar o eliminar un detalle (AJAX) ──────────────────────────────
+    protected function quitar(Request $request)
+    {
+        $detalle = DetalleVenta::find($request->input('id'));
+
+        if (!$detalle) {
+            return response()->json(['ok' => false, 'message' => 'Registro no encontrado.'], 404);
+        }
+
+        if ($detalle->cantidad_vendida <= 1) {
+            $nombre = $detalle->nombre;
+            $detalle->delete();
+            return response()->json(['ok' => true, 'eliminado' => true, 'nombre' => $nombre]);
+        }
+
+        $detalle->cantidad_vendida--;
+        $detalle->subtotal = $detalle->cantidad_vendida * $detalle->precio_unitario;
+        $detalle->save();
+
+        return response()->json([
+            'ok'               => true,
+            'eliminado'        => false,
+            'cantidad_vendida' => $detalle->cantidad_vendida,
+        ]);
+    }
+
+    // ── Buscar producto (Select2 + barcode lookup) ────────────────────────────
     protected function buscarProducto(Request $request)
     {
-        // Si viene el parámetro term (Select2), devolver un listado.
         if ($request->filled('term')) {
             $term = $request->input('term');
 
             $productosSoda = ProductoSoda::query()
                 ->select('codigo_softland as codigo', 'nombre', 'precio')
                 ->where('activo', true)
-                ->where(function ($query) use ($term) {
-                    $query->where('codigo_softland', 'like', '%' . $term . '%')
-                        ->orWhere('nombre', 'like', '%' . $term . '%');
+                ->where(function ($q) use ($term) {
+                    $q->where('nombre', 'like', '%' . $term . '%')
+                      ->orWhere('codigo_softland', 'like', '%' . $term . '%')
+                      ->orWhere('codigo_barras', 'like', '%' . $term . '%');
                 })
-                ->limit(15)
+                ->limit(10)
                 ->get()
-                ->map(function ($producto) {
-                    return [
-                        'codigo' => $producto->codigo,
-                        'nombre' => $producto->nombre,
-                        'precio' => $producto->precio,
-                        'tipo' => 'soda',
-                        'etiqueta' => sprintf('S - %s - %s', $producto->nombre, $producto->codigo),
-                    ];
-                });
+                ->map(fn($p) => [
+                    'codigo'   => $p->codigo,
+                    'nombre'   => $p->nombre,
+                    'precio'   => $p->precio,
+                    'tipo'     => 'soda',
+                    'etiqueta' => $p->nombre . ' (' . $p->codigo . ')',
+                ]);
 
             $productosTicket = Ticket::query()
                 ->select('codigo', 'nombre', 'precio')
-                ->where(function ($query) use ($term) {
-                    $query->where('codigo', 'like', '%' . $term . '%')
-                        ->orWhere('nombre', 'like', '%' . $term . '%');
+                ->where(function ($q) use ($term) {
+                    $q->where('nombre', 'like', '%' . $term . '%')
+                      ->orWhere('codigo', 'like', '%' . $term . '%');
                 })
-                ->limit(15)
+                ->limit(10)
                 ->get()
-                ->map(function ($producto) {
-                    return [
-                        'codigo' => $producto->codigo,
-                        'nombre' => $producto->nombre,
-                        'precio' => $producto->precio,
-                        'tipo' => 'ticket',
-                        'etiqueta' => sprintf('T - %s - %s', $producto->nombre, $producto->codigo),
-                    ];
-                });
-
-            $productos = $productosSoda->concat($productosTicket)->values();
+                ->map(fn($p) => [
+                    'codigo'   => $p->codigo,
+                    'nombre'   => $p->nombre,
+                    'precio'   => $p->precio,
+                    'tipo'     => 'ticket',
+                    'etiqueta' => $p->nombre . ' (' . $p->codigo . ')',
+                ]);
 
             return response()->json([
-                'success' => true,
-                'productos' => $productos,
+                'success'   => true,
+                'productos' => $productosSoda->concat($productosTicket)->values(),
             ]);
         }
 
-        // Búsqueda puntual por código (respaldo).
-        $validator = Validator::make($request->all(), [
-            'codigo'       => ['required', 'string'],
-        ], [
-            'codigo.required' => 'El código es obligatorio.',
-            'codigo.string'   => 'El código debe ser un texto válido.',
+        // Búsqueda puntual por código exacto
+        $codigo   = trim($request->input('codigo', ''));
+        $producto = $this->encontrarProducto($codigo);
+
+        if ($producto) {
+            return response()->json(['success' => true, 'producto' => $producto]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Producto no encontrado.'], 404);
+    }
+
+    // ── Lista de ventas con filtro por fecha y rol ────────────────────────────
+    protected function lista(Request $request)
+    {
+        $fechaIni = $request->input('fecha_ini', now()->toDateString());
+        $fechaFin = $request->input('fecha_fin', now()->toDateString());
+
+        $query = Venta::with(['user', 'detalles'])
+            ->whereBetween('fecha', [$fechaIni, $fechaFin]);
+
+        if (auth()->user()->rol === 2) {
+            $query->where('user_id', auth()->id());
+        }
+
+        $ventas = $query->orderBy('fecha', 'desc')->orderBy('id', 'desc')->get();
+
+        return view('pages.ventas.lista', compact('ventas', 'fechaIni', 'fechaFin'));
+    }
+
+    // ── Ver detalle de una venta ──────────────────────────────────────────────
+    protected function ver($id)
+    {
+        $query = Venta::with(['user', 'detalles']);
+
+        if (auth()->user()->rol === 2) {
+            $query->where('user_id', auth()->id());
+        }
+
+        $venta = $query->find($id);
+
+        if (!$venta) {
+            return redirect()->route('ventas', ['accion' => 'lista'])
+                ->with('error', 'Venta no encontrada.');
+        }
+
+        return view('pages.ventas.ver', compact('venta'));
+    }
+
+    // ── Formulario crear (legado) ─────────────────────────────────────────────
+    protected function crear()
+    {
+        return view('pages.ventas.crear');
+    }
+
+    protected function guardar(Request $request)
+    {
+        $request->validate([
+            'fecha'                          => 'required|date',
+            'detalles'                       => 'required|array|min:1',
+            'detalles.*.codigo'              => 'required|string|max:50',
+            'detalles.*.cantidad_vendida'    => 'required|integer|min:1',
+            'detalles.*.precio_unitario'     => 'required|numeric|min:0',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Revise los campos del formulario.',
-                'errors'  => $validator->errors(),
-            ], 422);
+        try {
+            DB::beginTransaction();
+
+            $userId = auth()->id();
+            if (!$userId) {
+                $firstUser = User::first();
+                if ($firstUser) {
+                    $userId = $firstUser->id;
+                } else {
+                    return response()->json(['success' => false, 'message' => 'No hay usuarios en la base de datos.'], 500);
+                }
+            }
+
+            $venta = Venta::create(['fecha' => $request->fecha, 'user_id' => $userId]);
+
+            foreach ($request->detalles as $d) {
+                $subtotal = $d['cantidad_vendida'] * $d['precio_unitario'];
+                DetalleVenta::create([
+                    'venta_id'         => $venta->id,
+                    'codigo'           => $d['codigo'],
+                    'cantidad_vendida' => $d['cantidad_vendida'],
+                    'precio_unitario'  => $d['precio_unitario'],
+                    'subtotal'         => $subtotal,
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json(['success' => true, 'message' => 'Venta guardada correctamente', 'venta_id' => $venta->id]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
+        }
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // Reporte de ventas
+    // ════════════════════════════════════════════════════════════════════════════
+
+    protected function reporte(Request $request)
+    {
+        [$ventas, $filtros, $resumen] = $this->consultaReporte($request);
+        $usuarios = User::orderBy('name')->get(['id', 'name']);
+        return view('pages.ventas.reporte', compact('ventas', 'filtros', 'resumen', 'usuarios'));
+    }
+
+    protected function reportePdf(Request $request)
+    {
+        [$ventas, $filtros, $resumen] = $this->consultaReporte($request);
+        $generadoEn = Carbon::now()->translatedFormat('d \d\e F Y, H:i');
+
+        $pdf = Pdf::loadView('pages.ventas.reporte_pdf', compact('ventas', 'filtros', 'resumen', 'generadoEn'))
+                  ->setPaper('a4', 'portrait');
+
+        return $pdf->download('reporte_ventas_' . now()->format('Ymd_His') . '.pdf');
+    }
+
+    private function consultaReporte(Request $request): array
+    {
+        $fechaIni = $request->input('fecha_ini', now()->startOfMonth()->toDateString());
+        $fechaFin = $request->input('fecha_fin', now()->toDateString());
+        $userId   = $request->input('user_id');
+
+        $query = Venta::with(['user', 'detalles'])
+            ->whereBetween('fecha', [$fechaIni, $fechaFin]);
+
+        if ($userId) {
+            $query->where('user_id', $userId);
         }
 
-        $codigo = $request->codigo;
-        $productoSoda = ProductoSoda::where('codigo_softland', $codigo)
-            ->where('activo', true)
-            ->first();
+        $ventas = $query->orderBy('fecha', 'desc')->get();
 
-        if ($productoSoda) {
-            return response()->json([
-                'success' => true,
-                'producto' => [
-                    'codigo' => $productoSoda->codigo_softland,
-                    'nombre' => $productoSoda->nombre,
-                    'precio' => $productoSoda->precio,
-                    'tipo' => 'soda',
-                ]
-            ]);
+        // Calcular total real desde detalles (compatible con ambos flujos)
+        $ventas->each(fn($v) => $v->total_calculado = $v->detalles->sum('subtotal'));
+
+        $resumen = [
+            'total_ventas'  => $ventas->count(),
+            'total_monto'   => $ventas->sum('total_calculado'),
+            'total_items'   => $ventas->sum(fn($v) => $v->detalles->count()),
+            'promedio'      => $ventas->count() > 0 ? $ventas->sum('total_calculado') / $ventas->count() : 0,
+        ];
+
+        $filtros = ['fecha_ini' => $fechaIni, 'fecha_fin' => $fechaFin, 'user_id' => $userId];
+
+        return [$ventas, $filtros, $resumen];
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // POS — cobro por transacción individual
+    // ════════════════════════════════════════════════════════════════════════════
+
+    protected function cobrar()
+    {
+        $items = session('pos_cart', []);
+        $total = array_sum(array_column($items, 'subtotal'));
+        return view('pages.ventas.cobrar', compact('items', 'total'));
+    }
+
+    protected function posAgregar(Request $request)
+    {
+        $codigo = trim($request->input('codigo', ''));
+
+        if ($codigo === '') {
+            return response()->json(['ok' => false, 'message' => 'Código vacío.'], 422);
         }
 
-        $productoTicket = Ticket::where('codigo', $codigo)->first();
+        $producto = $this->encontrarProducto($codigo);
 
-        if ($productoTicket) {
-            return response()->json([
-                'success' => true,
-                'producto' => [
-                    'codigo' => $productoTicket->codigo,
-                    'nombre' => $productoTicket->nombre,
-                    'precio' => $productoTicket->precio,
-                    'tipo' => 'ticket',
-                ]
-            ]);
+        if (!$producto) {
+            return response()->json(['ok' => false, 'message' => 'Producto no encontrado.'], 404);
         }
+
+        $cart = session('pos_cart', []);
+        $key  = $producto['codigo'];
+
+        if (isset($cart[$key])) {
+            $cart[$key]['cantidad']++;
+            $cart[$key]['subtotal'] = $cart[$key]['cantidad'] * $cart[$key]['precio_unitario'];
+        } else {
+            $cart[$key] = [
+                'codigo'          => $producto['codigo'],
+                'nombre'          => $producto['nombre'],
+                'precio_unitario' => $producto['precio'],
+                'cantidad'        => 1,
+                'subtotal'        => $producto['precio'],
+            ];
+        }
+
+        session(['pos_cart' => $cart]);
+        $total = array_sum(array_column($cart, 'subtotal'));
 
         return response()->json([
-            'success' => false,
-            'message' => 'Producto no encontrado con el código proporcionado',
-        ], 404);
+            'ok'      => true,
+            'message' => $producto['nombre'] . ' agregado.',
+            'item'    => $cart[$key],
+            'total'   => $total,
+        ]);
+    }
+
+    protected function posQuitar(Request $request)
+    {
+        $codigo = trim($request->input('codigo', ''));
+        $cart   = session('pos_cart', []);
+
+        if (!isset($cart[$codigo])) {
+            return response()->json(['ok' => false, 'message' => 'Ítem no encontrado.'], 404);
+        }
+
+        $nombre = $cart[$codigo]['nombre'];
+
+        if ($cart[$codigo]['cantidad'] <= 1) {
+            unset($cart[$codigo]);
+            $eliminado = true;
+        } else {
+            $cart[$codigo]['cantidad']--;
+            $cart[$codigo]['subtotal'] = $cart[$codigo]['cantidad'] * $cart[$codigo]['precio_unitario'];
+            $eliminado = false;
+        }
+
+        session(['pos_cart' => $cart]);
+        $total = array_sum(array_column($cart, 'subtotal'));
+
+        return response()->json([
+            'ok'       => true,
+            'eliminado'=> $eliminado,
+            'nombre'   => $nombre,
+            'codigo'   => $codigo,
+            'cantidad' => $eliminado ? 0 : $cart[$codigo]['cantidad'],
+            'total'    => $total,
+        ]);
+    }
+
+    protected function posProcesar(Request $request)
+    {
+        $cart = session('pos_cart', []);
+
+        if (empty($cart)) {
+            return response()->json(['ok' => false, 'message' => 'El carrito está vacío.'], 422);
+        }
+
+        $metodoPago = $request->input('metodo_pago');
+        if (!in_array($metodoPago, ['efectivo', 'tarjeta', 'mixto'])) {
+            return response()->json(['ok' => false, 'message' => 'Seleccione un método de pago.'], 422);
+        }
+
+        $total         = array_sum(array_column($cart, 'subtotal'));
+        $montoEfectivo = null;
+        $vuelto        = null;
+
+        if (in_array($metodoPago, ['efectivo', 'mixto'])) {
+            $montoEfectivo = (float) $request->input('monto_efectivo', 0);
+            if ($montoEfectivo <= 0) {
+                return response()->json(['ok' => false, 'message' => 'Ingrese el monto en efectivo.'], 422);
+            }
+            if ($metodoPago === 'efectivo' && $montoEfectivo < $total) {
+                return response()->json(['ok' => false, 'message' => 'El monto en efectivo es insuficiente.'], 422);
+            }
+            if ($metodoPago === 'efectivo') {
+                $vuelto = round($montoEfectivo - $total, 2);
+            }
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $venta = Venta::create([
+                'fecha'          => now()->toDateString(),
+                'user_id'        => auth()->id(),
+                'total'          => $total,
+                'metodo_pago'    => $metodoPago,
+                'monto_efectivo' => $montoEfectivo,
+                'vuelto'         => $vuelto,
+            ]);
+
+            foreach ($cart as $item) {
+                DetalleVenta::create([
+                    'venta_id'         => $venta->id,
+                    'codigo'           => $item['codigo'],
+                    'nombre'           => $item['nombre'],
+                    'cantidad_vendida' => $item['cantidad'],
+                    'precio_unitario'  => $item['precio_unitario'],
+                    'subtotal'         => $item['subtotal'],
+                ]);
+            }
+
+            DB::commit();
+            session()->forget('pos_cart');
+
+            return response()->json([
+                'ok'      => true,
+                'message' => 'Venta procesada correctamente.',
+                'total'   => number_format($total, 2),
+                'vuelto'  => $vuelto !== null ? number_format($vuelto, 2) : null,
+                'id'      => $venta->id,
+            ]);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json(['ok' => false, 'message' => 'Error al procesar: ' . $e->getMessage()], 500);
+        }
+    }
+
+    protected function posLimpiar()
+    {
+        session()->forget('pos_cart');
+        return response()->json(['ok' => true]);
+    }
+
+    // ── Helper privado: buscar producto en ambas tablas ───────────────────────
+    private function encontrarProducto(string $codigo): ?array
+    {
+        if ($codigo === '') return null;
+
+        $soda = ProductoSoda::where('activo', true)
+            ->where(function ($q) use ($codigo) {
+                $q->where('codigo_softland', $codigo)
+                  ->orWhere('codigo_barras', $codigo);
+            })
+            ->first();
+
+        if ($soda) {
+            return [
+                'codigo' => $soda->codigo_softland ?? $soda->codigo_barras,
+                'nombre' => $soda->nombre,
+                'precio' => $soda->precio ?? 0,
+            ];
+        }
+
+        $ticket = Ticket::where('codigo', $codigo)->first();
+
+        if ($ticket) {
+            return [
+                'codigo' => $ticket->codigo,
+                'nombre' => $ticket->nombre,
+                'precio' => $ticket->precio ?? 0,
+            ];
+        }
+
+        return null;
     }
 }

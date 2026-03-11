@@ -134,10 +134,8 @@ $bodyClass = 'authentication-background';
 
           <div class="mb-4 text-left">
             <a href="{{ url('index') }}" class="text-success fs-1 d-inline-block" style="text-align: left;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="none" viewBox="0 0 24 24" stroke="#8e44ad" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 14c3.314 0 6 2.239 6 5v1H6v-1c0-2.761 2.686-5 6-5z" />
-                <circle cx="12" cy="7" r="4" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
+              <img width="150px" src="{{ asset('build/assets/images/Logo.png') }}"
+                alt="Logo Soda">
             </a>
           </div>
 

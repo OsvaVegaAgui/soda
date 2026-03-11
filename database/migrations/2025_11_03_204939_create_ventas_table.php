@@ -6,19 +6,18 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-     public function up(): void
+    public function up(): void
     {
         Schema::create('ventas', function (Blueprint $table) {
-            $table->integer('id')->autoIncrement();
-            $table->date('fecha');          
-
+            $table->id();
+            $table->date('fecha');
             $table->unsignedBigInteger('user_id');
+            $table->timestamps();
+
             $table->foreign('user_id')
                   ->references('id')->on('users')
                   ->cascadeOnUpdate()
                   ->restrictOnDelete();
-
-            $table->timestamps();
         });
     }
 

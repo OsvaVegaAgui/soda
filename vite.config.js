@@ -141,6 +141,7 @@ export default defineConfig({
                 'resources/assets/js/stacy',
                 'resources/assets/js/paises',
                 'resources/assets/js/productos-soda2',
+                'resources/assets/js/ticketes',
             ],
             refresh: true,
         }),

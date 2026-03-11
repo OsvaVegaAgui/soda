@@ -10,22 +10,23 @@ class Ticket extends Model
     protected $primaryKey = 'id_ticket';
 
     protected $fillable = [
-        'nombre', 
-        'codigo', 
-        'categoria_d', 
-        'precio', 
-        'cantidad', 
-        'fecha',
+        'nombre',
+        'codigo',
+        'categoria_d',
+        'precio',
     ];
 
     protected $casts = [
-        'precio'   => 'decimal:2',
-        'cantidad' => 'integer',
-        'fecha'    => 'date',
+        'precio' => 'decimal:2',
     ];
 
     public function categoria()
     {
         return $this->belongsTo(CategoriaTicket::class, 'categoria_d', 'id_categoria');
+    }
+
+    public function historial()
+    {
+        return $this->hasMany(HistorialTiquetes::class, 'id_ticket', 'id_ticket');
     }
 }

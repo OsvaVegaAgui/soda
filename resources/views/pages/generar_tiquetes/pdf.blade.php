@@ -3,89 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <style>
+        * { margin: 0; padding: 0; }
+
         body {
-            font-family: sans-serif;
-            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #fff;
+            padding: 6px;
+        }
+
+        .grid-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 4px;
+        }
+
+        .grid-table td {
+            width: 25%;
+            vertical-align: top;
             padding: 0;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        td {
-            width: 25%;
-            padding: 6px;
-            vertical-align: top;
-        }
-
-        .ticket {
-            border: 1px solid #000;
-            border-radius: 8px;
-            padding: 6px 4px;
+        .tiquete {
+            border: 2px solid #000;
+            padding: 16px 6px;
             text-align: center;
-            height: 135px; /* un poquito más alto para que ajuste bien */
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
         }
 
-        .nombre {
-            font-size: 13px;
+        .tiq-nombre {
+            font-size: 22px;
             font-weight: bold;
+            color: #000;
+            margin-bottom: 8px;
+            line-height: 1.2;
         }
 
-        .fecha {
-            font-size: 11px;
+        .tiq-barcode {
+            display: none;
         }
 
-        /* CENTRAR Y FORZAR AL SVG A USAR TODO EL ANCHO */
-        .barcode-container svg,
-        .barcode-container img {
-            width: 100% !important;      /* ocupa TODO el ancho del cuadrito */
-            height: 40px !important;     /* más grande */
-            display: block !important;   /* elimina espacios extra */
-            margin: 0 auto;              /* centra */
+        .tiq-fecha {
+            font-size: 13px;
+            color: #000;
         }
 
-        .codigo-texto {
-            font-size: 11px;
-            margin-top: 4px;
-        }
+        .td-vacio { width: 25%; }
     </style>
 </head>
 <body>
 
-<table>
-<tr>
-@foreach ($ticketsGenerados as $i => $t)
+@foreach ($filas as $fila)
+    <table class="grid-table">
+        <tr>
+            @foreach ($fila as $t)
+                <td>
+                    <div class="tiquete">
+                        <div class="tiq-nombre">{{ $t['nombre'] }}</div>
+                        <div class="tiq-barcode"><img src="data:image/png;base64,{{ $t['barcode'] }}"></div>
+                        <div class="tiq-fecha">{{ $t['fecha'] }}</div>
+                    </div>
+                </td>
+            @endforeach
 
-    <td>
-        <div class="ticket">
-
-            <div class="nombre">{{ ucfirst($t->nombre) }}</div>
-
-            <div class="fecha">
-                Fecha: {{ \Carbon\Carbon::parse($t->fecha)->format('d/m/Y') }}
-            </div>
-
-            <div class="barcode-container">
-                {!! DNS1D::getBarcodeHTML($t->codigo, 'C128', 1.4, 45) !!}
-            </div>
-
-            <div class="codigo-texto">{{ $t->codigo }}</div>
-
-        </div>
-    </td>
-
-    @if(($i + 1) % 4 == 0)
-        </tr><tr>
-    @endif
-
+            @for ($i = count($fila); $i < 4; $i++)
+                <td class="td-vacio"></td>
+            @endfor
+        </tr>
+    </table>
 @endforeach
-</tr>
-</table>
 
 </body>
 </html>

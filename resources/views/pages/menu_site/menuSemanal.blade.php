@@ -3,139 +3,128 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Menú Semanal</title>
+    <title>Menú Semanal · Soda IACSA</title>
+    <meta name="description" content="Menú semanal de la Soda ETAI — Desayuno, Almuerzo y Refrigerio">
 
     <link rel="icon" type="image/png" href="{{ asset('site/img/breakfast.png') }}">
 
-    <!-- Bootstrap -->
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Iconos FontAwesome -->
-
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-    <!-- Google Font NUEVA -->
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Font: Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- CSS Laravel -->
+    <!-- Estilos -->
     <link rel="stylesheet" href="{{ asset('site/css/style.css') }}">
 </head>
 
 <body>
+
+    {{-- ── LOADER ─────────────────────────────────────────────────────── --}}
     <div id="page-loader">
         <img src="{{ asset('site/img/menu.gif') }}" alt="Cargando...">
+        <p>Preparando el menú...</p>
     </div>
 
-    <!-- NAVBAR NUEVO -->
-    <nav class="navbar navbar-expand-lg modern-nav" id="mainNav">
+    {{-- ── NAVBAR ─────────────────────────────────────────────────────── --}}
+    <nav class="main-nav">
         <div class="container">
-            <a href="#home" class="navbar-brand d-flex align-items-center">
-                <img src="{{ asset('site/img/logo etai.png') }}" alt="logo">
-                <span class="ms-2 fw-bold brand-text"></span>
-            </a>
-
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <i class="fas fa-bars"></i>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navbarNav">
-
-                <ul class="navbar-nav mx-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#menu-section">Menú</a>
-                    </li>
-                </ul>
-
-                <!-- Redes sociales -->
-                <div class="d-flex social-icons">
-                    <a href="#" class="me-3 social-link"><i class="fab fa-facebook"></i></a>
-                    <a href="#" class="me-3 social-link"><i class="fab fa-x-twitter"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+            <div class="nav-inner">
+                <img src="{{ asset('build/assets/images/Logo.png') }}" alt="Logo ETAI" class="nav-logo">
+                <div>
+                    <div class="nav-brand-title">Soda IACSA</div>
+                    <div class="nav-brand-sub">Instituto Agropecuario Costarricense</div>
                 </div>
-
             </div>
         </div>
     </nav>
 
-    <!-- SECCIÓN MENÚ -->
-    <section id="menu-section" class="py-5">
+    {{-- ── BANNER SEMANA ───────────────────────────────────────────────── --}}
+    <div class="week-banner">
+        <div class="container">
+            <h1><i class="fas fa-utensils me-2"></i>Menú de la Semana</h1>
+            <p class="week-dates">
+                <i class="fas fa-calendar-week"></i>{{ $fechaSemana }}
+            </p>
+        </div>
+    </div>
+
+    {{-- ── GRID SEMANAL ────────────────────────────────────────────────── --}}
+    <section class="week-section">
         <div class="container">
 
-            <div class="row justify-content-center">
-                <div class="col-lg-10">
+            @if(!$hoy)
+            {{-- Fin de semana --}}
+            <div class="weekend-notice">
+                <div class="emoji"><i class="fas fa-umbrella-beach fa-3x icon-weekend"></i></div>
+                <p class="fw-semibold mt-2">¡Es fin de semana!</p>
+                <p>El menú estará disponible nuevamente el lunes. ¡Que descansen!</p>
+            </div>
+            @endif
 
-                    <!-- TABS -->
-                    <ul class="nav new-menu-tabs mb-4 justify-content-center" id="menuTabs" role="tablist">
-                        
-                        <li class="nav-item">
-                            <button class="nav-link tab-card active" data-bs-toggle="tab" data-bs-target="#desayuno">
-                                <i class="fa-solid fa-mug-hot me-2"></i> Desayuno
-                            </button>
-                        </li>
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-5 g-3">
 
-                        <li class="nav-item">
-                            <button class="nav-link tab-card" data-bs-toggle="tab" data-bs-target="#almuerzo">
-                                <i class="fa-solid fa-utensils me-2"></i> Almuerzo
-                            </button>
-                        </li>
+                @foreach($semana as $dia => $comidas)
+                <div class="col">
+                    <div class="day-card {{ $dia === $hoy ? 'today' : '' }}">
 
-                        <li class="nav-item">
-                            <button class="nav-link tab-card" data-bs-toggle="tab" data-bs-target="#refrigerio">
-                                <i class="fa-solid fa-apple-whole me-2"></i> Refrigerio
-                            </button>
-                        </li>
-
-                    </ul>
-
-                    <!-- CONTENIDO -->
-                    <div class="tab-content" id="menuTabsContent">
-
-                        <!-- DESAYUNO -->
-                        <div class="tab-pane fade show active" id="desayuno">
-                            @foreach($desayunos as $item)
-                            <div class="menu-item">
-                                <p class="fw-bold mb-0">{{ $item->dia }}</p>
-                                <p>{{ $item->platillo }}</p>
-                            </div>
-                            @endforeach
+                        {{-- Encabezado día --}}
+                        <div class="day-header">
+                            <span class="day-name">{{ $dia }}</span>
+                            @if($dia === $hoy)
+                                <span class="hoy-badge">Hoy</span>
+                            @endif
                         </div>
 
-                        <!-- ALMUERZO -->
-                        <div class="tab-pane fade" id="almuerzo">
-                            @foreach($almuerzos as $item)
-                            <div class="menu-item">
-                                <p class="fw-bold mb-0">{{ $item->dia }}</p>
-                                <p>{{ $item->platillo }}</p>
+                        {{-- Desayuno --}}
+                        <div class="meal-item">
+                            <span class="meal-emoji"><i class="fas fa-mug-hot icon-desayuno"></i></span>
+                            <div>
+                                <div class="meal-type">Desayuno</div>
+                                <div class="meal-name">{{ $comidas['desayuno'] }}</div>
                             </div>
-                            @endforeach
                         </div>
 
-                        <!-- REFRIGERIO -->
-                        <div class="tab-pane fade" id="refrigerio">
-                            @foreach($refrigerios as $item)
-                            <div class="menu-item">
-                                <p class="fw-bold mb-0">{{ $item->dia }}</p>
-                                <p>{{ $item->platillo }}</p>
+                        {{-- Almuerzo --}}
+                        <div class="meal-item">
+                            <span class="meal-emoji"><i class="fas fa-utensils icon-almuerzo"></i></span>
+                            <div>
+                                <div class="meal-type">Almuerzo</div>
+                                <div class="meal-name">{{ $comidas['almuerzo'] }}</div>
                             </div>
-                            @endforeach
+                        </div>
+
+                        {{-- Refrigerio --}}
+                        <div class="meal-item">
+                            <span class="meal-emoji"><i class="fas fa-apple-whole icon-refrigerio"></i></span>
+                            <div>
+                                <div class="meal-type">Refrigerio</div>
+                                <div class="meal-name">{{ $comidas['refrigerio'] }}</div>
+                            </div>
                         </div>
 
                     </div>
-
                 </div>
-            </div>
+                @endforeach
 
+            </div>
         </div>
     </section>
 
-    <!-- FOOTER DISTINGUIDO -->
-    <footer class="main-footer text-center">
-        <p class="footer-title"><i></i> Soda-Iacsa 2025</p> <br>
-        <p class="footer-sub">¡Gracias por visitarnos!</p>
+    {{-- ── FOOTER ──────────────────────────────────────────────────────── --}}
+    <footer class="main-footer">
+        <div class="container">
+            <p class="footer-brand">Soda · IACSA</p>
+            <p>¡Buen provecho! &nbsp;<i class="fas fa-face-smile"></i></p>
+        </div>
     </footer>
 
-    <!-- JS -->
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('site/js/menuSemanal.js') }}"></script>
+
 </body>
 </html>

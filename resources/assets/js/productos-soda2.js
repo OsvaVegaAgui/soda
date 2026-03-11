@@ -1,238 +1,140 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    // ── Utilidad: mostrar alerta en #mensaje ──────────────────────────────────
     const msg = document.getElementById('mensaje');
-    const showMessage = (type='info', text='') => {
+
+    const showMessage = (type = 'info', text = '') => {
         if (!msg) return;
+        const labels = { success: 'Éxito', danger: 'Error', warning: 'Atención', info: 'Información' };
         msg.className = `alert alert-${type}`;
-        msg.innerHTML = `<strong>${{success:'Éxito',danger:'Error',warning:'Atención',info:'Información'}[type]||'Info'}</strong> ${text}`;
+        msg.innerHTML = `<strong>${labels[type] ?? 'Info'}</strong> ${text}`;
         msg.style.display = '';
-        setTimeout(()=> msg.style.display='none', 3500);
+        setTimeout(() => { msg.style.display = 'none'; }, 3500);
     };
 
-    const form = document.querySelector("#formCrearProducto");
+    // ── Errores de validación 422 ─────────────────────────────────────────────
+    const handleValidationError = async (resp) => {
+        const data = await resp.json();
+        const firstError = Object.values(data.errors ?? {})[0]?.[0] ?? 'Revisa los campos del formulario.';
+        showMessage('danger', firstError);
+    };
 
-    if (form){ 
+    // ── Formulario CREAR ──────────────────────────────────────────────────────
+    const formCrear = document.getElementById('formCrearProducto');
 
-        form.addEventListener('submit', async (e) => {
+    if (formCrear) {
+        formCrear.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const fd = new FormData(form);
-
             try {
-                const resp = await fetch(form.action, {
+                const resp = await fetch(formCrear.action, {
                     method: 'POST',
-                    body: fd,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    },
-                    credentials: 'same-origin'
-                });
-
-                if (resp.status === 422) {
-                   
-                    const data = await resp.json();
-                    const firstError =
-                        Object.values(data.errors || {})[0]?.[0] ||
-                        'Revisa los campos del formulario.';
-
-                    if (typeof showMessage === 'function') {
-                        showMessage('danger', firstError);
-                    } else {
-                        alert(firstError);
-                    }
-                    return;
-                }
-
-                if (!resp.ok) {
-                    if (typeof showMessage === 'function') {
-                        showMessage('danger', 'Error al enviar el formulario.');
-                    }return;
-                }
-
-                const data = await resp.json();
-
-                if (data.ok || data.success) {
-                    if (typeof showMessage === 'function') {
-                        showMessage('success', data.message || 'Producto guardado correctamente.');
-                    } 
-
-                    // Si quieres redirigir de vuelta a la lista:
-                    if (data.redirect) {
-                        setTimeout(() => { window.location.href = data.redirect; }, 1000);
-                    }
-                } else {
-                    if (typeof showMessage === 'function') {
-                        showMessage('warning', 'Solicitud procesada, pero sin confirmación explícita.');
-                    }
-                }
-
-            } catch (err) {
-                console.error(err);
-                if (typeof showMessage === 'function') {
-                    showMessage('danger', 'Error de conexión. Intenta nuevamente.');
-                }
-            }
-        });
-
-    }
-
-
-    // SI ESTAMOS TRABAJANDO CON EL FORMULARIO DE EDITAR
-    const formEditar = document.getElementById('formEditarProducto');
-    if (formEditar){ 
-        formEditar.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            // Validación HTML5
-            if (!formEditar.checkValidity()) {
-                formEditar.reportValidity();
-                return;
-            }
-
-            const fd = new FormData(formEditar);
-
-
-            const csrf =
-                document.querySelector('meta[name="csrf-token"]')?.content ||
-                document.querySelector('input[name="_token"]')?.value ||
-                '';
-
-
-            try {
-
-
-                const resp = await fetch(formEditarProducto.action, {
-                    method: 'POST', // usamos POST hacia la acción 'editar'
-                    body: fd,
+                    body: new FormData(formCrear),
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
                         'Accept': 'application/json',
-                        'X-CSRF-TOKEN': csrf
                     },
-                    credentials: 'same-origin'
+                    credentials: 'same-origin',
                 });
 
-                if (resp.status === 422) {
-                   
-                    const data = await resp.json();
-                    const firstError =
-                        Object.values(data.errors || {})[0]?.[0] ||
-                        'Revisa los campos del formulario.';
-
-                    if (typeof showMessage === 'function') {
-                        showMessage('danger', firstError);
-                    } else {
-                        alert(firstError);
-                    }
-                    return;
-                }
-
-                if (!resp.ok) {
-                    if (typeof showMessage === 'function') {
-                        showMessage('danger', 'Error al actualizar el producto.');
-                    } else {
-                        alert('Error al actualizar el producto.');
-                    }
-                    return;
-                }
+                if (resp.status === 422) { await handleValidationError(resp); return; }
+                if (!resp.ok) { showMessage('danger', 'Error al enviar el formulario.'); return; }
 
                 const data = await resp.json();
 
                 if (data.ok) {
-                    if (typeof showMessage === 'function') {
-                        showMessage('success', data.message || 'Producto actualizado correctamente.');
-                    } else {
-                        alert(data.message || 'Producto actualizado correctamente.');
-                    }
-
-                    // Si quieres redirigir de vuelta a la lista:
+                    showMessage('success', data.message ?? 'Producto guardado correctamente.');
                     if (data.redirect) {
-                        window.location.href = data.redirect;
+                        setTimeout(() => { window.location.href = data.redirect; }, 1200);
                     }
                 } else {
-                    if (typeof showMessage === 'function') {
-                        showMessage('warning', 'Solicitud procesada, pero sin confirmación explícita.');
-                    } else {
-                        alert('Solicitud procesada, pero sin confirmación explícita.');
-                    }
+                    showMessage('warning', 'Solicitud procesada, pero sin confirmación.');
                 }
 
-            } catch (err) {
-                console.error(err);
-                if (typeof showMessage === 'function') {
-                    showMessage('danger', 'Error de conexión. Intenta nuevamente.');
-                } else {
-                    alert('Error de conexión. Intenta nuevamente.');
-                }
+            } catch {
+                showMessage('danger', 'Error de conexión. Intenta nuevamente.');
             }
         });
     }
 
-    document.addEventListener('submit', async (e) => {
-        const formEliminar = e.target.closest('.form-eliminar-producto');
-        if (formEliminar){
+    // ── Formulario EDITAR ─────────────────────────────────────────────────────
+    const formEditar = document.getElementById('formEditarProducto');
 
+    if (formEditar) {
+        formEditar.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const btn = formEliminar.querySelector('.btn-eliminar-producto');
-            const nombre = btn?.dataset.nombre || 'este producto';
+            if (!formEditar.checkValidity()) { formEditar.reportValidity(); return; }
 
-            const confirmar = confirm(`¿Seguro que desea eliminar ${nombre}?`);
-            if (!confirmar) return;
-
-            const fd = new FormData(formEliminar);
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.content
+                ?? document.querySelector('input[name="_token"]')?.value
+                ?? '';
 
             try {
-                const resp = await fetch(formEliminar.action, {
+                const resp = await fetch(formEditar.action, {
                     method: 'POST',
-                    body: fd, // aquí ya viaja _token
+                    body: new FormData(formEditar),
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrf,
                     },
-                    credentials: 'same-origin'
+                    credentials: 'same-origin',
                 });
 
-                if (!resp.ok) {
-                    if (typeof showMessage === 'function') {
-                        showMessage('danger', 'No se pudo eliminar el producto.');
-                    } else {
-                        alert('No se pudo eliminar el producto.');
-                    }
-                    return;
-                }
+                if (resp.status === 422) { await handleValidationError(resp); return; }
+                if (!resp.ok) { showMessage('danger', 'Error al actualizar el producto.'); return; }
 
                 const data = await resp.json();
 
                 if (data.ok) {
-                    if (typeof showMessage === 'function') {
-                        showMessage('success', data.message || 'Producto eliminado correctamente.');
-                        location.reload();
-                    } else {
-                        alert(data.message || 'Producto eliminado correctamente.');
-                        location.reload();
+                    showMessage('success', data.message ?? 'Producto actualizado correctamente.');
+                    if (data.redirect) {
+                        setTimeout(() => { window.location.href = data.redirect; }, 1200);
                     }
-
-                    const fila = formEliminar.closest('tr');
-
-                    if (fila) fila.remove();
                 } else {
-                    if (typeof showMessage === 'function') {
-                        showMessage('warning', data.message || 'No se pudo eliminar el producto.');
-                    } else {
-                        alert(data.message || 'No se pudo eliminar el producto.');
-                    }
+                    showMessage('warning', 'Solicitud procesada, pero sin confirmación.');
                 }
 
-            } catch (err) {
-                console.error(err);
-                if (typeof showMessage === 'function') {
-                    showMessage('danger', 'Error de conexión al intentar eliminar el producto.');
-                } else {
-                    alert('Error de conexión al intentar eliminar el producto.');
-                }
+            } catch {
+                showMessage('danger', 'Error de conexión. Intenta nuevamente.');
             }
+        });
+    }
+
+    // ── Formulario ELIMINAR (delegado desde lista) ────────────────────────────
+    document.addEventListener('submit', async (e) => {
+        const formEliminar = e.target.closest('.form-eliminar-producto');
+        if (!formEliminar) return;
+
+        e.preventDefault();
+
+        const nombre = formEliminar.querySelector('.btn-eliminar-producto')?.dataset.nombre ?? 'este producto';
+        if (!confirm(`¿Seguro que desea eliminar "${nombre}"?`)) return;
+
+        try {
+            const resp = await fetch(formEliminar.action, {
+                method: 'POST',
+                body: new FormData(formEliminar),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                },
+                credentials: 'same-origin',
+            });
+
+            const data = await resp.json();
+
+            if (data.ok) {
+                showMessage('success', data.message ?? 'Producto eliminado correctamente.');
+                setTimeout(() => location.reload(), 1200);
+            } else {
+                showMessage('danger', data.message ?? 'No se pudo eliminar el producto.');
+            }
+
+        } catch {
+            showMessage('danger', 'Error de conexión al intentar eliminar el producto.');
         }
     });
+
 });

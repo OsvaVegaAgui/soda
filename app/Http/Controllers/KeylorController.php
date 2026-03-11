@@ -64,8 +64,8 @@ class KeylorController extends Controller
                 case 'restablecer':
                 return $this->vistaRestablecer();
 
-
-
+                case 'logout':
+                return $this->logout($request);
 
                 default:
                     abort(404, 'Acción no soportada para Usuarios.');
@@ -107,14 +107,14 @@ class KeylorController extends Controller
 
         try {
 
-            // INSERTAR EN TABLA USERS (SIN ACTIVO)
             $id = DB::table('users')->insertGetId([
-                'name'              => $request->input('name'),
-                'rol'               => $request->input('rol'),
-                'email'             => $request->input('email'),
-                'password'          => $request->input('password'),  
-                'created_at'        => now(),
-                'updated_at'        => now(),
+                'name'       => $request->input('name'),
+                'rol'        => $request->input('rol'),
+                'email'      => $request->input('email'),
+                'password'   => Hash::make($request->input('password')),
+                'activo'     => true,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             return response()->json([
@@ -137,10 +137,10 @@ class KeylorController extends Controller
         try {
             DB::table('users')->where('id', $id)->delete();
 
-            return redirect()->back()->with('success', 'Usuario eliminado correctamente.');
+            return response()->json(['ok' => true, 'message' => 'Usuario eliminado correctamente.']);
 
         } catch (\Throwable $e) {
-            return redirect()->back()->with('error', 'Error al eliminar el usuario.');
+            return response()->json(['ok' => false, 'message' => 'Error al eliminar el usuario.'], 500);
         }
     }
 
@@ -199,7 +199,7 @@ class KeylorController extends Controller
             ];
 
             if ($request->filled('password')) {
-                $dataUpdate['password'] = $request->input('password'); // sin hash (como lo usás)
+                $dataUpdate['password'] = Hash::make($request->input('password'));
             }
 
             // ACTUALIZAR
@@ -238,6 +238,14 @@ class KeylorController extends Controller
         return view('pages.usuarios.login');
     }
 
+    public function logout(Request $request)
+    {
+        auth()->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect()->route('usuarios', ['accion' => 'login']);
+    }
+
     public function restablecerContraseña()
     {
         return view('pages.usuarios.restablecerContraseña');
@@ -248,49 +256,34 @@ class KeylorController extends Controller
 public function loginConfi(Request $request)
 {
     try {
-
-        $email = $request->input('email');
-        $password = $request->input('password');
-
-       
-        $usuario = User::where('email', $email)->first();
+        $usuario = User::where('email', $request->input('email'))->first();
 
         if (!$usuario) {
-            return response()->json([
-                'ok' => false,
-                'mensaje' => 'El correo no está registrado.',
-            ], 401);
+            return response()->json(['ok' => false, 'mensaje' => 'El correo no está registrado.'], 401);
         }
 
-        // 🔐 Comparar directamente la contraseña
-        if ($usuario->password !== $password) {
-            return response()->json([
-                'ok' => false,
-                'mensaje' => 'Contraseña incorrecta.',
-            ], 401);
+        if (!Hash::check($request->input('password'), $usuario->password)) {
+            return response()->json(['ok' => false, 'mensaje' => 'Contraseña incorrecta.'], 401);
         }
 
-        // ⚙️ Verificar si el usuario está activo (si existe ese campo)
-        if (isset($usuario->activo) && $usuario->activo == 0) {
-            return response()->json([
-                'ok' => false,
-                'mensaje' => 'Tu cuenta está desactivada. Contacta al administrador.',
-            ], 403);
+        if (!$usuario->activo) {
+            return response()->json(['ok' => false, 'mensaje' => 'Tu cuenta está desactivada. Contacta al administrador.'], 403);
         }
 
-        // ✅ Inicio de sesión exitoso
+        auth()->login($usuario, $request->boolean('remember'));
+
+        $redirect = $usuario->rol === 2
+            ? route('caja', ['accion' => 'ingresar'])
+            : url('index');
+
         return response()->json([
-            'ok' => true,
-            'mensaje' => '✅ Inicio de sesión exitoso. Bienvenido ' . $usuario->name,
-            'redirect' => url('/'),
-        ], 200);
+            'ok'      => true,
+            'mensaje' => 'Bienvenido, ' . $usuario->name,
+            'redirect' => $redirect,
+        ]);
 
     } catch (\Exception $e) {
-        return response()->json([
-            'ok' => false,
-            'mensaje' => 'Error interno en el servidor.',
-            'error' => $e->getMessage(),
-        ], 500);
+        return response()->json(['ok' => false, 'mensaje' => 'Error interno en el servidor.'], 500);
     }
 }
 
@@ -365,11 +358,7 @@ public function cambiarContrasena(Request $request)
         ], 401);
     }
 
-    // 🔥 Cambiar contraseña SIN hash (como vos querés)
-    Log::info($user->password);
-
-    $user->password = $request->password;
-    Log::info($user->password);
+    $user->password = Hash::make($request->password);
 
     // 🔥 Limpiar token después de usarlo
     $user->reset_token = null;

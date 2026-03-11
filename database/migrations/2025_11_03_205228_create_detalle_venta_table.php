@@ -9,21 +9,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('detalle_venta', function (Blueprint $table) {
-            $table->integer('id')->autoIncrement();
+            $table->id();
+            $table->unsignedBigInteger('venta_id');
+            $table->string('codigo', 50); // código del producto (soda o tiquete)
+            $table->integer('cantidad_vendida');
+            $table->decimal('precio_unitario', 10, 2);
+            $table->decimal('subtotal', 10, 2);
+            $table->timestamps();
 
-            $table->integer('venta_id');
             $table->foreign('venta_id')
                   ->references('id')->on('ventas')
                   ->cascadeOnUpdate()
                   ->cascadeOnDelete();
-            
-            $table->string('codigo', 50)->unique();
-
-            $table->integer('cantidad_vendida');        
-            $table->decimal('precio_unitario', 10, 2);  
-            $table->decimal('subtotal', 10, 2); 
-
-            $table->timestamps();
         });
     }
 

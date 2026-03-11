@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php artisan:*)",
+      "Bash(php:*)",
+      "Bash(composer show:*)",
+      "Bash(composer install:*)",
+      "Bash(xargs grep:*)",
+      "WebFetch(domain:barcode.tec-it.com)",
+      "WebFetch(domain:www.itsolutionstuff.com)",
+      "Bash(composer require:*)",
+      "Bash(python3:*)",
+      "Bash(npm run:*)"
+    ]
+  }
+}

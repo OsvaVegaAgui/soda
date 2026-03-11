@@ -22,15 +22,94 @@
 						</div>
 						<ul class="main-menu">
 							
+							@if(auth()->check() && auth()->user()->rol === 2)
+						<!-- Start::slide__category -->
+						<li class="slide__category"><span class="category-name">Caja</span></li>
+						<!-- End::slide__category -->
+						<li class="slide {{ request()->is('caja/ingresar') ? 'active' : '' }}">
+							<a href="{{ route('caja', ['accion' => 'ingresar']) }}" class="side-menu__item">
+								<i class="bi bi-cash-coin side-menu__icon"></i>
+								<span class="side-menu__label">Ingresar Caja</span>
+							</a>
+						</li>
+						<li class="slide {{ request()->is('caja/historial') ? 'active' : '' }}">
+							<a href="{{ route('caja', ['accion' => 'historial']) }}" class="side-menu__item">
+								<i class="bi bi-clock-history side-menu__icon"></i>
+								<span class="side-menu__label">Mi Historial</span>
+							</a>
+						</li>
+						@endif
+
+						@if(auth()->check() && auth()->user()->rol === 1)
+						<!-- Start::slide__category -->
+						<li class="slide__category"><span class="category-name">Caja</span></li>
+						<!-- End::slide__category -->
+						<li class="slide {{ request()->is('caja/historial') ? 'active' : '' }}">
+							<a href="{{ route('caja', ['accion' => 'historial']) }}" class="side-menu__item">
+								<i class="bi bi-cash-stack side-menu__icon"></i>
+								<span class="side-menu__label">Cajas de Usuarios</span>
+							</a>
+						</li>
+						@endif
+
+						<!-- Start::slide__category -->
+							<li class="slide__category"><span class="category-name">Tiquetes</span></li>
+							<!-- End::slide__category -->
+
+							<li class="slide has-sub">
+								<a href="javascript:void(0);" class="side-menu__item">
+									<svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><path d="M24,88H232L216.93,201.06A8,8,0,0,1,209,208H47a8,8,0,0,1-7.93-6.94Z" opacity="0.2"/><line x1="128" y1="120" x2="128" y2="176" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><polyline points="184 88 128 24 72 88" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><line x1="180.8" y1="120" x2="175.2" y2="176" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><line x1="75.2" y1="120" x2="80.8" y2="176" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M24,88H232L216.93,201.06A8,8,0,0,1,209,208H47a8,8,0,0,1-7.93-6.94Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>
+									<span class="side-menu__label">Generar Tiquetes</span>
+									<i class="ri-arrow-right-s-line side-menu__angle"></i>
+								</a>
+								<ul class="slide-menu child1">
+									<li class="slide side-menu__label1">
+										<a href="javascript:void(0)">Tiquetes del día</a>
+									</li>
+									<li class="slide {{ request()->is('generar-ticketes/crear') ? 'active' : '' }}">
+										<a href="{{ route('generar-ticketes', ['accion' => 'crear']) }}" class="side-menu__item">
+											<i class="bi bi-file-earmark-pdf me-1"></i> Generar PDF
+										</a>
+									</li>
+									<li class="slide {{ request()->is('generar-ticketes/historial') ? 'active' : '' }}">
+										<a href="{{ route('generar-ticketes', ['accion' => 'historial']) }}" class="side-menu__item">
+											<i class="bi bi-clock-history me-1"></i> Historial
+										</a>
+									</li>
+								</ul>
+							</li>
+
 							<!-- Start::slide__category -->
 							<li class="slide__category"><span class="category-name">Ventas</span></li>
 							<!-- End::slide__category -->
 
-							<li class="slide">
-								<a href="{{url('widgets')}}" class="side-menu__item">
-									<svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><path d="M133.66,34.34a8,8,0,0,0-11.32,0L40,116.69V216h64V152h48v64h64V116.69Z" opacity="0.2"/><line x1="16" y1="216" x2="240" y2="216" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><polyline points="152 216 152 152 104 152 104 216" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><line x1="40" y1="116.69" x2="40" y2="216" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><line x1="216" y1="216" x2="216" y2="116.69" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M24,132.69l98.34-98.35a8,8,0,0,1,11.32,0L232,132.69" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>
-									<span class="side-menu__label">Ingresar Ventas</span>
+							<li class="slide has-sub {{ request()->is('ventas/*') ? 'active open' : '' }}">
+								<a href="javascript:void(0);" class="side-menu__item">
+									<i class="bi bi-cart3 side-menu__icon"></i>
+									<span class="side-menu__label">Ventas</span>
+									<i class="ri-arrow-right-s-line side-menu__angle"></i>
 								</a>
+								<ul class="slide-menu child1">
+									<li class="slide side-menu__label1">
+										<a href="javascript:void(0)">Ventas</a>
+									</li>
+									<li class="slide {{ request()->is('ventas/cobrar') ? 'active' : '' }}">
+										<a href="{{ route('ventas', ['accion' => 'cobrar']) }}" class="side-menu__item">
+											<i class="bi bi-cart-plus me-1"></i> Cobrar Venta
+										</a>
+									</li>
+									<li class="slide {{ request()->is('ventas/registrar') ? 'active' : '' }}">
+										<a href="{{ route('ventas', ['accion' => 'registrar']) }}" class="side-menu__item">
+											<i class="bi bi-bar-chart-line me-1"></i> Resumen del Día
+										</a>
+									</li>
+									<li class="slide {{ request()->is('ventas/lista') || request()->is('ventas/ver/*') ? 'active' : '' }}">
+										<a href="{{ route('ventas', ['accion' => 'lista']) }}" class="side-menu__item">
+											<i class="bi bi-receipt me-1"></i>
+											{{ auth()->check() && auth()->user()->rol === 2 ? 'Mis Ventas' : 'Historial de Ventas' }}
+										</a>
+									</li>
+								</ul>
 							</li>
 
 							<!-- Start::slide__category -->
@@ -56,16 +135,13 @@
 										</a>
 
 										<ul class="slide-menu child2">
-											<li class="slide">
-												<a href="{{url('index4')}}" class="side-menu__item">Imprimir Tiquetes</a>
+											<li class="slide {{ request()->is('ticketes/lista') ? 'active' : '' }}">
+												<a href="{{ route('ticketes-soda', ['accion' => 'lista']) }}" class="side-menu__item">Lista de Tiquetes</a>
 											</li>
-											<li class="slide">
-												<a href="{{url('job-details')}}" class="side-menu__item">Lista Tiquetes</a>
+											<li class="slide {{ request()->is('ticketes/crear') ? 'active' : '' }}">
+												<a href="{{ route('ticketes-soda', ['accion' => 'crear']) }}" class="side-menu__item">Crear Tiquete</a>
 											</li>
-											<li class="slide">
-												<a href="{{url('job-company-search')}}" class="side-menu__item">Crear Tiquete</a>
-											</li>
-										</ul> 
+										</ul>
 
 									</li>
 
@@ -77,13 +153,13 @@
 										</a>
 
 										<ul class="slide-menu child2">
-											<li class="slide">
-												<a href="{{url('job-details')}}" class="side-menu__item">Lista Productos</a>
+											<li class="slide {{ request()->is('productos-soda/lista') ? 'active' : '' }}">
+												<a href="{{ route('productos-soda', ['accion' => 'lista']) }}" class="side-menu__item">Lista de Productos</a>
 											</li>
-											<li class="slide">
-												<a href="{{url('job-company-search')}}" class="side-menu__item">Crear Producto</a>
+											<li class="slide {{ request()->is('productos-soda/crear') ? 'active' : '' }}">
+												<a href="{{ route('productos-soda', ['accion' => 'crear']) }}" class="side-menu__item">Crear Producto</a>
 											</li>
-										</ul> 
+										</ul>
 									</li>
 
 								</ul>
@@ -93,8 +169,8 @@
 							<li class="slide__category"><span class="category-name">Menú Semanal</span></li>
 							<!-- End::slide__category -->
 
-							<li class="slide">
-								<a href="{{url('widgets')}}" class="side-menu__item">
+							<li class="slide {{ request()->is('menu-admin/seleccionar') || request()->is('menu-admin/editar*') ? 'active' : '' }}">
+								<a href="{{ route('menu_admin', ['accion' => 'seleccionar']) }}" class="side-menu__item">
 									<svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><path d="M54,40H202a8,8,0,0,1,7.69,5.8L224,96H32L46.34,45.8A8,8,0,0,1,54,40Z" opacity="0.2"/><path d="M96,96v16a32,32,0,0,1-64,0V96Z" opacity="0.2"/><path d="M224,96v16a32,32,0,0,1-64,0V96Z" opacity="0.2"/><polyline points="48 139.59 48 216 208 216 208 139.59" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M54,40H202a8,8,0,0,1,7.69,5.8L224,96H32L46.34,45.8A8,8,0,0,1,54,40Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M96,96v16a32,32,0,0,1-64,0V96" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M160,96v16a32,32,0,0,1-64,0V96" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M224,96v16a32,32,0,0,1-64,0V96" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>
 									<span class="side-menu__label">Ingresar Menú</span>
 								</a>
@@ -127,6 +203,33 @@
 											</li>
 										</ul>
 									</li>
+
+									<li class="slide has-sub">
+										<a href="javascript:void(0);" class="side-menu__item">
+											<i class="bi bi-cart-check side-menu-doublemenu__icon"></i>
+											Reporte de Ventas
+											<i class="ri-arrow-right-s-line side-menu__angle"></i>
+										</a>
+										<ul class="slide-menu child2">
+											<li class="slide {{ request()->is('ventas/reporte') ? 'active' : '' }}">
+												<a href="{{ route('ventas', ['accion' => 'reporte']) }}" class="side-menu__item">General</a>
+											</li>
+										</ul>
+									</li>
+
+									<li class="slide has-sub">
+										<a href="javascript:void(0);" class="side-menu__item">
+											<i class="bi bi-cash-coin side-menu-doublemenu__icon"></i>
+											Reporte de Caja
+											<i class="ri-arrow-right-s-line side-menu__angle"></i>
+										</a>
+										<ul class="slide-menu child2">
+											<li class="slide {{ request()->is('caja/reporte') ? 'active' : '' }}">
+												<a href="{{ route('caja', ['accion' => 'reporte']) }}" class="side-menu__item">Por Usuario</a>
+											</li>
+										</ul>
+									</li>
+
 								</ul>
 							</li>
 
@@ -180,6 +283,14 @@
 						</ul>
 						<ul class="doublemenu_bottom-menu main-menu mb-0 border-top">
 							
+							<!-- Cerrar sesión -->
+							<li class="slide">
+								<a href="#" class="side-menu__item" onclick="event.preventDefault();document.getElementById('logout-form').submit();">
+									<form id="logout-form" action="{{ route('usuarios', ['accion' => 'logout']) }}" method="POST" style="display:none;">@csrf</form>
+									<i class="bi bi-box-arrow-right side-menu__icon"></i>
+									<span class="side-menu__label fw-semibold" style="color:#dc3545;">Cerrar Sesión</span>
+								</a>
+							</li>
 							<!-- Start::slide -->
 							<li class="slide">
 								<a href="{{url('profile-settings')}}" class="side-menu__item">
