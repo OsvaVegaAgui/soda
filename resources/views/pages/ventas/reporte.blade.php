@@ -39,12 +39,22 @@
                     </select>
                 </div>
 
-                <div class="col-md-3 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary flex-fill">
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Tipo de producto</label>
+                    <select name="tipo_producto" class="form-select">
+                        <option value="">— Todos —</option>
+                        <option value="soda"        {{ ($filtros['tipo_producto'] ?? '') === 'soda'        ? 'selected' : '' }}>Productos Soda</option>
+                        <option value="ticket_cat1" {{ ($filtros['tipo_producto'] ?? '') === 'ticket_cat1' ? 'selected' : '' }}>Tiquetes — Cocina</option>
+                        <option value="ticket_cat2" {{ ($filtros['tipo_producto'] ?? '') === 'ticket_cat2' ? 'selected' : '' }}>Tiquetes — Externo</option>
+                    </select>
+                </div>
+
+                <div class="col-12 d-flex gap-2 justify-content-end">
+                    <button type="submit" class="btn btn-primary">
                         <i class="bi bi-search me-1"></i>Filtrar
                     </button>
                     <a href="{{ route('ventas', ['accion' => 'reporte']) }}" class="btn btn-outline-secondary">
-                        <i class="bi bi-x-lg"></i>
+                        <i class="bi bi-x-lg"></i> Limpiar
                     </a>
                 </div>
 

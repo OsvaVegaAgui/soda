@@ -52,6 +52,8 @@ class MiltonController extends Controller
                 return $this->reporte($request);
             case 'reporte-pdf':
                 return $this->reportePdf($request);
+            case 'reporte-horas':
+                return $this->reporteHoras($request);
             default:
                 return redirect()->route('ventas', ['accion' => 'registrar']);
         }
@@ -323,15 +325,26 @@ class MiltonController extends Controller
 
     private function consultaReporte(Request $request): array
     {
-        $fechaIni = $request->input('fecha_ini', now()->startOfMonth()->toDateString());
-        $fechaFin = $request->input('fecha_fin', now()->toDateString());
-        $userId   = $request->input('user_id');
+        $fechaIni      = $request->input('fecha_ini', now()->startOfMonth()->toDateString());
+        $fechaFin      = $request->input('fecha_fin', now()->toDateString());
+        $userId        = $request->input('user_id');
+        $tipoProducto  = $request->input('tipo_producto');
 
         $query = Venta::with(['user', 'detalles'])
             ->whereBetween('fecha', [$fechaIni, $fechaFin]);
 
         if ($userId) {
             $query->where('user_id', $userId);
+        }
+
+        if ($tipoProducto === 'soda') {
+            $query->whereHas('detalles', fn($q) => $q->where('codigo', 'like', 'SOD-%'));
+        } elseif ($tipoProducto === 'ticket_cat1') {
+            $codigos = Ticket::where('categoria_d', 1)->pluck('codigo');
+            $query->whereHas('detalles', fn($q) => $q->whereIn('codigo', $codigos));
+        } elseif ($tipoProducto === 'ticket_cat2') {
+            $codigos = Ticket::where('categoria_d', 2)->pluck('codigo');
+            $query->whereHas('detalles', fn($q) => $q->whereIn('codigo', $codigos));
         }
 
         $ventas = $query->orderBy('fecha', 'desc')->get();
@@ -346,9 +359,62 @@ class MiltonController extends Controller
             'promedio'      => $ventas->count() > 0 ? $ventas->sum('total_calculado') / $ventas->count() : 0,
         ];
 
-        $filtros = ['fecha_ini' => $fechaIni, 'fecha_fin' => $fechaFin, 'user_id' => $userId];
+        $filtros = [
+            'fecha_ini'     => $fechaIni,
+            'fecha_fin'     => $fechaFin,
+            'user_id'       => $userId,
+            'tipo_producto' => $tipoProducto,
+        ];
 
         return [$ventas, $filtros, $resumen];
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // Reporte por hora del día
+    // ════════════════════════════════════════════════════════════════════════════
+
+    protected function reporteHoras(Request $request)
+    {
+        $fechaIni = $request->input('fecha_ini', now()->startOfMonth()->toDateString());
+        $fechaFin = $request->input('fecha_fin', now()->toDateString());
+        $userId   = $request->input('user_id');
+
+        $query = DB::table('ventas as v')
+            ->join('detalle_venta as dv', 'dv.venta_id', '=', 'v.id')
+            ->selectRaw('HOUR(v.created_at) as hora, COUNT(DISTINCT v.id) as transacciones, SUM(dv.subtotal) as monto')
+            ->whereBetween('v.fecha', [$fechaIni, $fechaFin]);
+
+        if ($userId) {
+            $query->where('v.user_id', $userId);
+        }
+
+        $raw = $query
+            ->groupByRaw('HOUR(v.created_at)')
+            ->orderBy('hora')
+            ->get()
+            ->keyBy('hora');
+
+        // Array completo de 24 horas (rellena con 0 los huecos)
+        $horas = [];
+        for ($h = 0; $h < 24; $h++) {
+            $horas[$h] = [
+                'hora'          => sprintf('%02d:00', $h),
+                'transacciones' => isset($raw[$h]) ? (int)   $raw[$h]->transacciones : 0,
+                'monto'         => isset($raw[$h]) ? (float) $raw[$h]->monto         : 0.0,
+            ];
+        }
+
+        $collection        = collect($horas);
+        $peakHora          = $collection->sortByDesc('monto')->first();
+        $totalMonto        = $collection->sum('monto');
+        $totalTransacciones = $collection->sum('transacciones');
+
+        $usuarios = User::orderBy('name')->get(['id', 'name']);
+        $filtros  = ['fecha_ini' => $fechaIni, 'fecha_fin' => $fechaFin, 'user_id' => $userId];
+
+        return view('pages.ventas.reporte_horas', compact(
+            'horas', 'peakHora', 'totalMonto', 'totalTransacciones', 'filtros', 'usuarios'
+        ));
     }
 
     // ════════════════════════════════════════════════════════════════════════════

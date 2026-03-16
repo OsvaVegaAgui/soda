@@ -22,37 +22,7 @@
 						</div>
 						<ul class="main-menu">
 							
-							@if(auth()->check() && auth()->user()->rol === 2)
-						<!-- Start::slide__category -->
-						<li class="slide__category"><span class="category-name">Caja</span></li>
-						<!-- End::slide__category -->
-						<li class="slide {{ request()->is('caja/ingresar') ? 'active' : '' }}">
-							<a href="{{ route('caja', ['accion' => 'ingresar']) }}" class="side-menu__item">
-								<i class="bi bi-cash-coin side-menu__icon"></i>
-								<span class="side-menu__label">Ingresar Caja</span>
-							</a>
-						</li>
-						<li class="slide {{ request()->is('caja/historial') ? 'active' : '' }}">
-							<a href="{{ route('caja', ['accion' => 'historial']) }}" class="side-menu__item">
-								<i class="bi bi-clock-history side-menu__icon"></i>
-								<span class="side-menu__label">Mi Historial</span>
-							</a>
-						</li>
-						@endif
-
-						@if(auth()->check() && auth()->user()->rol === 1)
-						<!-- Start::slide__category -->
-						<li class="slide__category"><span class="category-name">Caja</span></li>
-						<!-- End::slide__category -->
-						<li class="slide {{ request()->is('caja/historial') ? 'active' : '' }}">
-							<a href="{{ route('caja', ['accion' => 'historial']) }}" class="side-menu__item">
-								<i class="bi bi-cash-stack side-menu__icon"></i>
-								<span class="side-menu__label">Cajas de Usuarios</span>
-							</a>
-						</li>
-						@endif
-
-						<!-- Start::slide__category -->
+							<!-- Start::slide__category GENERAR TIQUETES-->
 							<li class="slide__category"><span class="category-name">Tiquetes</span></li>
 							<!-- End::slide__category -->
 
@@ -79,7 +49,7 @@
 								</ul>
 							</li>
 
-							<!-- Start::slide__category -->
+							<!-- Start::slide__category VENTAS-->
 							<li class="slide__category"><span class="category-name">Ventas</span></li>
 							<!-- End::slide__category -->
 
@@ -110,6 +80,17 @@
 										</a>
 									</li>
 								</ul>
+							</li>
+
+							<!-- Start::slide__category -->
+							<li class="slide__category"><span class="category-name">Menú Semanal</span></li>
+							<!-- End::slide__category -->
+
+							<li class="slide {{ request()->is('menu-admin/seleccionar') || request()->is('menu-admin/editar*') ? 'active' : '' }}">
+								<a href="{{ route('menu_admin', ['accion' => 'seleccionar']) }}" class="side-menu__item">
+									<svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><path d="M54,40H202a8,8,0,0,1,7.69,5.8L224,96H32L46.34,45.8A8,8,0,0,1,54,40Z" opacity="0.2"/><path d="M96,96v16a32,32,0,0,1-64,0V96Z" opacity="0.2"/><path d="M224,96v16a32,32,0,0,1-64,0V96Z" opacity="0.2"/><polyline points="48 139.59 48 216 208 216 208 139.59" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M54,40H202a8,8,0,0,1,7.69,5.8L224,96H32L46.34,45.8A8,8,0,0,1,54,40Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M96,96v16a32,32,0,0,1-64,0V96" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M160,96v16a32,32,0,0,1-64,0V96" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M224,96v16a32,32,0,0,1-64,0V96" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>
+									<span class="side-menu__label">Ingresar Menú</span>
+								</a>
 							</li>
 
 							<!-- Start::slide__category -->
@@ -165,120 +146,132 @@
 								</ul>
 							</li>
 
-							<!-- Start::slide__category -->
-							<li class="slide__category"><span class="category-name">Menú Semanal</span></li>
-							<!-- End::slide__category -->
+							@if(auth()->check() && auth()->user()->rol === 1)
+								<!-- Start::slide__category -->
+								<li class="slide__category"><span class="category-name">Reportes</span></li>
+								<!-- End::slide__category -->
 
-							<li class="slide {{ request()->is('menu-admin/seleccionar') || request()->is('menu-admin/editar*') ? 'active' : '' }}">
-								<a href="{{ route('menu_admin', ['accion' => 'seleccionar']) }}" class="side-menu__item">
-									<svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><path d="M54,40H202a8,8,0,0,1,7.69,5.8L224,96H32L46.34,45.8A8,8,0,0,1,54,40Z" opacity="0.2"/><path d="M96,96v16a32,32,0,0,1-64,0V96Z" opacity="0.2"/><path d="M224,96v16a32,32,0,0,1-64,0V96Z" opacity="0.2"/><polyline points="48 139.59 48 216 208 216 208 139.59" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M54,40H202a8,8,0,0,1,7.69,5.8L224,96H32L46.34,45.8A8,8,0,0,1,54,40Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M96,96v16a32,32,0,0,1-64,0V96" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M160,96v16a32,32,0,0,1-64,0V96" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M224,96v16a32,32,0,0,1-64,0V96" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>
-									<span class="side-menu__label">Ingresar Menú</span>
-								</a>
-							</li>
+								<!-- Start::slide -->
+								<li class="slide has-sub">
+									<a href="javascript:void(0);" class="side-menu__item">
+										<svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><path d="M32,48H208a16,16,0,0,1,16,16V208a0,0,0,0,1,0,0H32a0,0,0,0,1,0,0V48A0,0,0,0,1,32,48Z" opacity="0.2"/><polyline points="224 208 32 208 32 48" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><polyline points="200 72 128 144 96 112 32 176" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><polyline points="200 112 200 72 160 72" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>
+										<span class="side-menu__label">Reportes</span>
+										<i class="ri-arrow-right-s-line side-menu__angle"></i>
+									</a>
+									<ul class="slide-menu child1">
+										<li class="slide side-menu__label1">
+											<a href="javascript:void(0)">Reportes</a>
+										</li>
 
-							<!-- Start::slide__category -->
-							<li class="slide__category"><span class="category-name">Reportes</span></li>
-							<!-- End::slide__category -->
+										<li class="slide has-sub">
+											<a href="javascript:void(0);" class="side-menu__item">
+												<svg xmlns="http://www.w3.org/2000/svg" class="side-menu-doublemenu__icon" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><rect x="152" y="40" width="56" height="168" opacity="0.2"/><polyline points="48 208 48 136 96 136" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><line x1="224" y1="208" x2="32" y2="208" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><polyline points="96 208 96 88 152 88" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><polyline points="152 208 152 40 208 40 208 208" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>
+												Reporte de ventas
+												<i class="ri-arrow-right-s-line side-menu__angle"></i>
+											</a>
+											<ul class="slide-menu child2">
+												<li class="slide {{ request()->is('ventas/reporte') ? 'active' : '' }}">
+													<a href="{{ route('ventas', ['accion' => 'reporte']) }}" class="side-menu__item">General</a>
+												</li>
+												<li class="slide {{ request()->is('ventas/reporte-horas') ? 'active' : '' }}">
+													<a href="{{ route('ventas', ['accion' => 'reporte-horas']) }}" class="side-menu__item">Por hora del día</a>
+												</li>
+											</ul>
+										</li>
 
-							<!-- Start::slide -->
-							<li class="slide has-sub">
-								<a href="javascript:void(0);" class="side-menu__item">
-									<svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><path d="M32,48H208a16,16,0,0,1,16,16V208a0,0,0,0,1,0,0H32a0,0,0,0,1,0,0V48A0,0,0,0,1,32,48Z" opacity="0.2"/><polyline points="224 208 32 208 32 48" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><polyline points="200 72 128 144 96 112 32 176" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><polyline points="200 112 200 72 160 72" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>
-									<span class="side-menu__label">Reportes</span>
-									<i class="ri-arrow-right-s-line side-menu__angle"></i>
-								</a>
-								<ul class="slide-menu child1">
-									<li class="slide side-menu__label1">
-										<a href="javascript:void(0)">Reportes</a>
-									</li>
-									<li class="slide has-sub">
-										<a href="javascript:void(0);" class="side-menu__item">
-											<svg xmlns="http://www.w3.org/2000/svg" class="side-menu-doublemenu__icon" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><rect x="152" y="40" width="56" height="168" opacity="0.2"/><polyline points="48 208 48 136 96 136" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><line x1="224" y1="208" x2="32" y2="208" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><polyline points="96 208 96 88 152 88" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><polyline points="152 208 152 40 208 40 208 208" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>
-											Reporte de ventas
-											<i class="ri-arrow-right-s-line side-menu__angle"></i>
-										</a>
-										<ul class="slide-menu child2">
-											<li class="slide">
-												<a href="{{url('apex-line-charts')}}" class="side-menu__item">Ventas por dia</a>
-											</li>
-										</ul>
-									</li>
+										{{-- <li class="slide has-sub">
+											<a href="javascript:void(0);" class="side-menu__item">
+												<i class="bi bi-cash-coin side-menu-doublemenu__icon"></i>
+												Reporte de Caja
+												<i class="ri-arrow-right-s-line side-menu__angle"></i>
+											</a>
+											<ul class="slide-menu child2">
+												<li class="slide {{ request()->is('caja/reporte') ? 'active' : '' }}">
+													<a href="{{ route('caja', ['accion' => 'reporte']) }}" class="side-menu__item">Por Usuario</a>
+												</li>
+											</ul>
+										</li> --}}
 
-									<li class="slide has-sub">
-										<a href="javascript:void(0);" class="side-menu__item">
-											<i class="bi bi-cart-check side-menu-doublemenu__icon"></i>
-											Reporte de Ventas
-											<i class="ri-arrow-right-s-line side-menu__angle"></i>
-										</a>
-										<ul class="slide-menu child2">
-											<li class="slide {{ request()->is('ventas/reporte') ? 'active' : '' }}">
-												<a href="{{ route('ventas', ['accion' => 'reporte']) }}" class="side-menu__item">General</a>
-											</li>
-										</ul>
-									</li>
+									</ul>
+								</li>
 
-									<li class="slide has-sub">
-										<a href="javascript:void(0);" class="side-menu__item">
-											<i class="bi bi-cash-coin side-menu-doublemenu__icon"></i>
-											Reporte de Caja
-											<i class="ri-arrow-right-s-line side-menu__angle"></i>
-										</a>
-										<ul class="slide-menu child2">
-											<li class="slide {{ request()->is('caja/reporte') ? 'active' : '' }}">
-												<a href="{{ route('caja', ['accion' => 'reporte']) }}" class="side-menu__item">Por Usuario</a>
-											</li>
-										</ul>
-									</li>
+								<li class="slide has-sub">
+									<a href="javascript:void(0);" class="side-menu__item">
+										<svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><path d="M128,120a40,40,0,1,0-40-40A40,40,0,0,0,128,120Zm0,16c-36.12,0-72,18.39-72,48v16a8,8,0,0,0,8,8H192a8,8,0,0,0,8-8V184C200,154.39,164.12,136,128,136Z" opacity="0.2"/><path d="M128,120a40,40,0,1,0-40-40A40,40,0,0,0,128,120Zm0,16c-36.12,0-72,18.39-72,48v16a8,8,0,0,0,8,8H192a8,8,0,0,0,8-8V184C200,154.39,164.12,136,128,136Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>
+										<span class="side-menu__label">Usuarios</span>
+										<i class="ri-arrow-right-s-line side-menu__angle"></i>
+									</a>
+									<ul class="slide-menu child1">
+										<li class="slide side-menu__label1">
+											<a href="javascript:void(0)">Usuarios</a>
+										</li>
 
-								</ul>
-							</li>
+										<li class="slide {{ request()->is('usuarios/crear') ? 'active' : '' }}">
+											<a href="{{ route('usuarios', ['accion' => 'crear']) }}" class="side-menu__item">
+												<svg xmlns="http://www.w3.org/2000/svg" class="side-menu-doublemenu__icon" viewBox="0 0 256 256">
+													<path d="M128,120a40,40,0,1,0-40-40A40,40,0,0,0,128,120Zm40,64H168v24H136a8,8,0,0,0-8,8v16h16v24h24V232h24V216H200a8,8,0,0,0-8-8H168Z" opacity="0.2"></path>
+													<path d="M128,120a40,40,0,1,0-40-40A40,40,0,0,0,128,120Zm40,64H168v24H136a8,8,0,0,0-8,8v16h16v24h24V232h24V216H200a8,8,0,0,0-8-8H168Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"></path>
+												</svg>
+												Crear Usuario
+											</a>
+										</li>
 
-							<li class="slide has-sub">
-								<a href="javascript:void(0);" class="side-menu__item">
-									<svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><path d="M128,120a40,40,0,1,0-40-40A40,40,0,0,0,128,120Zm0,16c-36.12,0-72,18.39-72,48v16a8,8,0,0,0,8,8H192a8,8,0,0,0,8-8V184C200,154.39,164.12,136,128,136Z" opacity="0.2"/><path d="M128,120a40,40,0,1,0-40-40A40,40,0,0,0,128,120Zm0,16c-36.12,0-72,18.39-72,48v16a8,8,0,0,0,8,8H192a8,8,0,0,0,8-8V184C200,154.39,164.12,136,128,136Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>
-									<span class="side-menu__label">Usuarios</span>
-									<i class="ri-arrow-right-s-line side-menu__angle"></i>
-								</a>
-								<ul class="slide-menu child1">
-									<li class="slide side-menu__label1">
-										<a href="javascript:void(0)">Usuarios</a>
-									</li>
-
-									<li class="slide {{ request()->is('usuarios/crear') ? 'active' : '' }}">
-										<a href="{{ route('usuarios', ['accion' => 'crear']) }}" class="side-menu__item">
-											<svg xmlns="http://www.w3.org/2000/svg" class="side-menu-doublemenu__icon" viewBox="0 0 256 256">
-												<path d="M128,120a40,40,0,1,0-40-40A40,40,0,0,0,128,120Zm40,64H168v24H136a8,8,0,0,0-8,8v16h16v24h24V232h24V216H200a8,8,0,0,0-8-8H168Z" opacity="0.2"></path>
-												<path d="M128,120a40,40,0,1,0-40-40A40,40,0,0,0,128,120Zm40,64H168v24H136a8,8,0,0,0-8,8v16h16v24h24V232h24V216H200a8,8,0,0,0-8-8H168Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"></path>
-											</svg>
-											Crear Usuario
-										</a>
-									</li>
-
-									<li class="slide {{ request()->is('usuarios/lista') ? 'active' : '' }}">
-										<a href="{{ route('usuarios', ['accion' => 'lista']) }}" class="side-menu__item">
-											<svg xmlns="http://www.w3.org/2000/svg" class="side-menu-doublemenu__icon" viewBox="0 0 256 256">
-												<path d="M16 48h224v16H16zm0 48h224v16H16zm0 48h224v16H16zm0 48h224v16H16z" opacity="0.2"></path>
-												<path d="M16 48h224v16H16zm0 48h224v16H16zm0 48h224v16H16zm0 48h224v16H16z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"></path>
-											</svg>
-											Lista de Usuarios
-										</a>
-									</li>
+										<li class="slide {{ request()->is('usuarios/lista') ? 'active' : '' }}">
+											<a href="{{ route('usuarios', ['accion' => 'lista']) }}" class="side-menu__item">
+												<svg xmlns="http://www.w3.org/2000/svg" class="side-menu-doublemenu__icon" viewBox="0 0 256 256">
+													<path d="M16 48h224v16H16zm0 48h224v16H16zm0 48h224v16H16zm0 48h224v16H16z" opacity="0.2"></path>
+													<path d="M16 48h224v16H16zm0 48h224v16H16zm0 48h224v16H16zm0 48h224v16H16z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"></path>
+												</svg>
+												Lista de Usuarios
+											</a>
+										</li>
 
 
-									<li class="slide {{ request()->is('usuarios/login') ? 'active' : '' }}">
-										<a href="{{ route('usuarios', ['accion' => 'login']) }}" class="side-menu__item">
-											<svg xmlns="http://www.w3.org/2000/svg" class="side-menu-doublemenu__icon" viewBox="0 0 256 256">
-												<path d="M128 24a56 56 0 1 1-56 56A56 56 0 0 1 128 24Z" opacity="0.2"></path>
-												<path d="M200 232H56a8 8 0 0 1-8-8v-16a40 40 0 0 1 40-40h80a40 40 0 0 1 40 40v16A8 8 0 0 1 200 232Zm-72-96a72 72 0 1 0-72-72A72 72 0 0 0 128 136Z"
-													fill="none" stroke="currentColor" stroke-linecap="round"
-													stroke-linejoin="round" stroke-width="16"></path>
-											</svg>
-											Iniciar Sesión
-										</a>
-									</li>
+										<li class="slide {{ request()->is('usuarios/login') ? 'active' : '' }}">
+											<a href="{{ route('usuarios', ['accion' => 'login']) }}" class="side-menu__item">
+												<svg xmlns="http://www.w3.org/2000/svg" class="side-menu-doublemenu__icon" viewBox="0 0 256 256">
+													<path d="M128 24a56 56 0 1 1-56 56A56 56 0 0 1 128 24Z" opacity="0.2"></path>
+													<path d="M200 232H56a8 8 0 0 1-8-8v-16a40 40 0 0 1 40-40h80a40 40 0 0 1 40 40v16A8 8 0 0 1 200 232Zm-72-96a72 72 0 1 0-72-72A72 72 0 0 0 128 136Z"
+														fill="none" stroke="currentColor" stroke-linecap="round"
+														stroke-linejoin="round" stroke-width="16"></path>
+												</svg>
+												Iniciar Sesión
+											</a>
+										</li>
 
-								</ul>
-							</li>
+									</ul>
+								</li>
+							@endif
+
+							@if(auth()->check() && auth()->user()->rol === 2)
+								<!-- Start::slide__category -->
+								<li class="slide__category"><span class="category-name">Caja</span></li>
+								<!-- End::slide__category -->
+								<li class="slide {{ request()->is('caja/ingresar') ? 'active' : '' }}">
+									<a href="{{ route('caja', ['accion' => 'ingresar']) }}" class="side-menu__item">
+										<i class="bi bi-cash-coin side-menu__icon"></i>
+										<span class="side-menu__label">Ingresar Caja</span>
+									</a>
+								</li>
+								<li class="slide {{ request()->is('caja/historial') ? 'active' : '' }}">
+									<a href="{{ route('caja', ['accion' => 'historial']) }}" class="side-menu__item">
+										<i class="bi bi-clock-history side-menu__icon"></i>
+										<span class="side-menu__label">Mi Historial</span>
+									</a>
+								</li>
+							@endif
+
+							@if(auth()->check() && auth()->user()->rol === 1)
+								<!-- Start::slide__category -->
+								<li class="slide__category"><span class="category-name">Caja</span></li>
+								<!-- End::slide__category -->
+								<li class="slide {{ request()->is('caja/historial') ? 'active' : '' }}">
+									<a href="{{ route('caja', ['accion' => 'historial']) }}" class="side-menu__item">
+										<i class="bi bi-cash-stack side-menu__icon"></i>
+										<span class="side-menu__label">Cajas de Usuarios</span>
+									</a>
+								</li>
+							@endif
 
 						</ul>
 						<ul class="doublemenu_bottom-menu main-menu mb-0 border-top">
@@ -292,13 +285,6 @@
 								</a>
 							</li>
 							<!-- Start::slide -->
-							<li class="slide">
-								<a href="{{url('profile-settings')}}" class="side-menu__item">
-									<svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><path d="M205.31,71.08a16,16,0,0,1-20.39-20.39A96,96,0,0,0,63.8,199.38h0A72,72,0,0,1,128,160a40,40,0,1,1,40-40,40,40,0,0,1-40,40,72,72,0,0,1,64.2,39.37A96,96,0,0,0,205.31,71.08Z" opacity="0.2"/><line x1="200" y1="40" x2="200" y2="28" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><circle cx="200" cy="56" r="16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><line x1="186.14" y1="48" x2="175.75" y2="42" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><line x1="186.14" y1="64" x2="175.75" y2="70" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><line x1="200" y1="72" x2="200" y2="84" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><line x1="213.86" y1="64" x2="224.25" y2="70" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><line x1="213.86" y1="48" x2="224.25" y2="42" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><circle cx="128" cy="120" r="40" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M63.8,199.37a72,72,0,0,1,128.4,0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/><path d="M222.67,112A95.92,95.92,0,1,1,144,33.33" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/></svg>
-									<span class="side-menu__label">Profile Settings</span>
-								</a>
-							</li>
-							<!-- End::slide -->
 						</ul>
 						<div class="slide-right" id="slide-right"><svg xmlns="http://www.w3.org/2000/svg" fill="#7b8191" width="24" height="24" viewBox="0 0 24 24"> <path d="M10.707 17.707 16.414 12l-5.707-5.707-1.414 1.414L13.586 12l-4.293 4.293z"></path> </svg></div>
 					</nav>
