@@ -20,7 +20,7 @@
         margin-bottom: .25rem;
     }
     .total-amount {
-        font-size: clamp(2.8rem, 6vw, 5rem);
+        font-size: clamp(2.8rem, 3vw, 5rem);
         font-weight: 900;
         color: #fff;
         line-height: 1;

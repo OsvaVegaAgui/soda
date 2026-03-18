@@ -2,6 +2,10 @@
 
 @section('styles')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<style>
+    .saldo-positivo { color: #198754; font-weight: 700; }
+    .badge-metodo { font-size: .72rem; }
+</style>
 @endsection
 
 @section('content')
@@ -31,13 +35,22 @@
                                 @if($user->rol === 1)
                                 <th>Usuario</th>
                                 @endif
-                                <th class="text-end">Monto</th>
+                                <th class="text-end">Monto Inicial</th>
+                                <th class="text-end">Entradas Efectivo</th>
+                                <th class="text-end">Vueltos Dados</th>
+                                <th class="text-end">Saldo Final</th>
                                 <th>Observación</th>
-                                <th>Registrado</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($cajas as $caja)
+                            @php
+                                $key          = $caja->fecha . '_' . $caja->user_id;
+                                $stats        = $ventasStats[$key] ?? null;
+                                $entradas     = $stats ? (float) $stats->total_efectivo : 0;
+                                $vueltos      = $stats ? (float) $stats->total_vuelto   : 0;
+                                $saldoFinal   = $caja->monto + $entradas - $vueltos;
+                            @endphp
                             <tr>
                                 <td class="fw-semibold">
                                     {{ \Carbon\Carbon::parse($caja->fecha)->translatedFormat('d/m/Y') }}
@@ -45,20 +58,31 @@
                                 @if($user->rol === 1)
                                 <td>{{ $caja->user?->name ?? '—' }}</td>
                                 @endif
-                                <td class="text-end fw-bold text-success">
+                                <td class="text-end text-muted">
                                     ₡{{ number_format($caja->monto, 2) }}
                                 </td>
-                                <td class="text-muted small">{{ $caja->observacion ?? '—' }}</td>
-                                <td class="small text-muted">
-                                    {{ $caja->created_at->format('d/m/Y H:i') }}
-                                    @if($caja->updated_at->ne($caja->created_at))
-                                        <br><span class="badge bg-warning text-dark">Actualizado</span>
+                                <td class="text-end text-success fw-semibold">
+                                    @if($entradas > 0)
+                                        ₡{{ number_format($entradas, 2) }}
+                                    @else
+                                        <span class="text-muted">—</span>
                                     @endif
                                 </td>
+                                <td class="text-end text-danger fw-semibold">
+                                    @if($vueltos > 0)
+                                        ₡{{ number_format($vueltos, 2) }}
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </td>
+                                <td class="text-end saldo-positivo" style="font-size:1.05rem;">
+                                    ₡{{ number_format($saldoFinal, 2) }}
+                                </td>
+                                <td class="text-muted small">{{ $caja->observacion ?? '—' }}</td>
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="{{ $user->rol === 1 ? 5 : 4 }}" class="text-center text-muted py-5">
+                                <td colspan="{{ $user->rol === 1 ? 7 : 6 }}" class="text-center text-muted py-5">
                                     <i class="bi bi-inbox d-block mb-2" style="font-size:2.5rem;"></i>
                                     No hay cajas registradas aún.
                                 </td>

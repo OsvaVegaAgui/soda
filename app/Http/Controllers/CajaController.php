@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\CajaDiaria;
+use App\Models\Venta;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -154,17 +155,34 @@ class CajaController extends Controller
         $user = auth()->user();
 
         if ($user->rol === 1) {
-            // Admin: ve todas las cajas de todos los usuarios
             $cajas = CajaDiaria::with('user')
                 ->orderBy('fecha', 'desc')
                 ->get();
         } else {
-            // Usuario rol=2: solo las propias
             $cajas = CajaDiaria::where('user_id', $user->id)
                 ->orderBy('fecha', 'desc')
                 ->get();
         }
 
-        return view('pages.caja.historial', compact('cajas', 'user'));
+        // Calcular movimientos de efectivo por fecha/usuario
+        $fechas = $cajas->pluck('fecha')->unique()->values()->toArray();
+
+        $ventasQuery = Venta::whereIn('fecha', $fechas)
+            ->whereIn('metodo_pago', ['efectivo', 'mixto'])
+            ->selectRaw('fecha, user_id, SUM(monto_efectivo) as total_efectivo, SUM(COALESCE(vuelto, 0)) as total_vuelto')
+            ->groupBy('fecha', 'user_id');
+
+        if ($user->rol !== 1) {
+            $ventasQuery->where('user_id', $user->id);
+        }
+
+        $ventasStats = $ventasQuery->get()->keyBy(function ($v) {
+            $fecha = $v->fecha instanceof \Carbon\Carbon
+                ? $v->fecha->toDateString()
+                : substr((string) $v->fecha, 0, 10);
+            return $fecha . '_' . $v->user_id;
+        });
+
+        return view('pages.caja.historial', compact('cajas', 'user', 'ventasStats'));
     }
 }
