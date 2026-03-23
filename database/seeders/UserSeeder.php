@@ -17,7 +17,9 @@ class UserSeeder extends Seeder
             ['name' => 'Funcionaria1',               'email' => 'funcionaria1@caep.co.cr',   'password' => 'admin',  'rol' => 2],
             ['name' => 'Funcionaria2',               'email' => 'funcionaria2@caep.co.cr',   'password' => 'admin',  'rol' => 2],
             // Admin (rol 1)
-            ['name' => 'Osvaldo Vega Aguilar',       'email' => 'ovega@etai.acr.cr',         'password' => '123456', 'rol' => 1],
+            ['name' => 'Osvaldo Vega Aguilar',              'email' => 'ovega@etai.acr.cr',                      'password' => '123456',       'rol' => 1],
+            ['name' => 'Luis Guillermo Del Valle Corrales',  'email' => 'ldelvalle@etai.ac.cr',                   'password' => '@Abcd1234!@',  'rol' => 1],
+            ['name' => 'Estudiante Admin',                   'email' => 'admin_empresas@estudiante.etai.ac.cr',   'password' => '@1234Abcd%@',  'rol' => 1],
         ];
 
         foreach ($usuarios as $data) {

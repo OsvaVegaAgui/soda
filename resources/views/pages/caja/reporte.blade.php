@@ -134,9 +134,11 @@
                         @if(auth()->user()->rol === 1)
                         <th>Usuario</th>
                         @endif
+                        <th class="text-center">Apertura</th>
+                        <th class="text-center">Entrega</th>
+                        <th class="text-center">Estado</th>
                         <th class="text-end">Monto</th>
                         <th>Observación</th>
-                        <th class="text-center">Últ. actualización</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -148,17 +150,23 @@
                         @if(auth()->user()->rol === 1)
                         <td>{{ $caja->user?->name ?? '—' }}</td>
                         @endif
+                        <td class="text-center small">{{ $caja->hora_apertura?->format('H:i') ?? '—' }}</td>
+                        <td class="text-center small">{{ $caja->cerrada ? ($caja->hora_cierre?->format('H:i') ?? '—') : '—' }}</td>
+                        <td class="text-center">
+                            @if($caja->cerrada)
+                                <span class="badge bg-secondary">Entregada</span>
+                            @else
+                                <span class="badge bg-success">Abierta</span>
+                            @endif
+                        </td>
                         <td class="text-end fw-bold text-success fs-15">
                             ₡{{ number_format($caja->monto, 2) }}
                         </td>
                         <td class="text-muted small">{{ $caja->observacion ?? '—' }}</td>
-                        <td class="text-center small text-muted">
-                            {{ $caja->updated_at->format('d/m/Y H:i') }}
-                        </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="{{ auth()->user()->rol === 1 ? 5 : 4 }}" class="text-center text-muted py-5">
+                        <td colspan="{{ auth()->user()->rol === 1 ? 7 : 6 }}" class="text-center text-muted py-5">
                             <i class="bi bi-inbox d-block mb-2" style="font-size:2.5rem;"></i>
                             No hay registros para el período seleccionado.
                         </td>
@@ -168,9 +176,9 @@
                 @if($totalRegistros > 0)
                 <tfoot>
                     <tr class="table-success fw-bold">
-                        <td colspan="{{ auth()->user()->rol === 1 ? 2 : 1 }}">Total general</td>
+                        <td colspan="{{ auth()->user()->rol === 1 ? 5 : 4 }}">Total general</td>
                         <td class="text-end">₡{{ number_format($totalMonto, 2) }}</td>
-                        <td colspan="2"></td>
+                        <td></td>
                     </tr>
                 </tfoot>
                 @endif

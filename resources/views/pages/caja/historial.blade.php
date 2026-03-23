@@ -4,7 +4,6 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
 <style>
     .saldo-positivo { color: #198754; font-weight: 700; }
-    .badge-metodo { font-size: .72rem; }
 </style>
 @endsection
 
@@ -21,7 +20,7 @@
                 </div>
                 @if(auth()->user()->rol === 2)
                 <a href="{{ route('caja', ['accion' => 'ingresar']) }}" class="btn btn-sm btn-primary">
-                    <i class="bi bi-cash-coin me-1"></i>Ingresar Caja de Hoy
+                    <i class="bi bi-cash-coin me-1"></i>Gestionar Caja
                 </a>
                 @endif
             </div>
@@ -35,6 +34,9 @@
                                 @if($user->rol === 1)
                                 <th>Usuario</th>
                                 @endif
+                                <th class="text-center">Apertura</th>
+                                <th class="text-center">Entrega</th>
+                                <th class="text-center">Estado</th>
                                 <th class="text-end">Monto Inicial</th>
                                 <th class="text-end">Entradas Efectivo</th>
                                 <th class="text-end">Vueltos Dados</th>
@@ -45,11 +47,10 @@
                         <tbody>
                             @forelse($cajas as $caja)
                             @php
-                                $key          = $caja->fecha . '_' . $caja->user_id;
-                                $stats        = $ventasStats[$key] ?? null;
-                                $entradas     = $stats ? (float) $stats->total_efectivo : 0;
-                                $vueltos      = $stats ? (float) $stats->total_vuelto   : 0;
-                                $saldoFinal   = $caja->monto + $entradas - $vueltos;
+                                $stats      = $ventasStats[$caja->id] ?? null;
+                                $entradas   = $stats ? (float) $stats['total_efectivo'] : 0;
+                                $vueltos    = $stats ? (float) $stats['total_vuelto']   : 0;
+                                $saldoFinal = $caja->monto + $entradas - $vueltos;
                             @endphp
                             <tr>
                                 <td class="fw-semibold">
@@ -58,6 +59,19 @@
                                 @if($user->rol === 1)
                                 <td>{{ $caja->user?->name ?? '—' }}</td>
                                 @endif
+                                <td class="text-center small">
+                                    {{ $caja->hora_apertura?->format('H:i') ?? '—' }}
+                                </td>
+                                <td class="text-center small">
+                                    {{ $caja->cerrada ? ($caja->hora_cierre?->format('H:i') ?? '—') : '—' }}
+                                </td>
+                                <td class="text-center">
+                                    @if($caja->cerrada)
+                                        <span class="badge bg-secondary">Entregada</span>
+                                    @else
+                                        <span class="badge bg-success">Abierta</span>
+                                    @endif
+                                </td>
                                 <td class="text-end text-muted">
                                     ₡{{ number_format($caja->monto, 2) }}
                                 </td>
@@ -82,7 +96,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="{{ $user->rol === 1 ? 7 : 6 }}" class="text-center text-muted py-5">
+                                <td colspan="{{ $user->rol === 1 ? 10 : 9 }}" class="text-center text-muted py-5">
                                     <i class="bi bi-inbox d-block mb-2" style="font-size:2.5rem;"></i>
                                     No hay cajas registradas aún.
                                 </td>
