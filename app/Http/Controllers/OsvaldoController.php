@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Ticket;
 use App\Models\HistorialTiquetes;
+use App\Models\DetalleVenta;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Picqer\Barcode\BarcodeGeneratorPNG;
+use Illuminate\Support\Facades\DB;
 
 class OsvaldoController extends Controller
 {
@@ -124,6 +126,36 @@ class OsvaldoController extends Controller
         $registros = HistorialTiquetes::with('ticket.categoria')
             ->orderBy('fecha_impresion', 'desc')
             ->get();
+
+        // Obtener codigos únicos para consulta batch (evita N+1)
+        $codigos = $registros
+            ->filter(fn($r) => $r->ticket)
+            ->pluck('ticket.codigo')
+            ->unique()
+            ->values()
+            ->all();
+
+        // Una sola query: total vendido por codigo + fecha de venta
+        $ventasPorCodigoFecha = collect();
+        if (!empty($codigos)) {
+            $ventasPorCodigoFecha = DetalleVenta::join('ventas', 'ventas.id', '=', 'detalle_venta.venta_id')
+                ->select(
+                    'detalle_venta.codigo',
+                    'ventas.fecha',
+                    DB::raw('SUM(detalle_venta.cantidad_vendida) as total_vendido')
+                )
+                ->whereIn('detalle_venta.codigo', $codigos)
+                ->groupBy('detalle_venta.codigo', 'ventas.fecha')
+                ->get()
+                ->keyBy(fn($row) => $row->codigo . '|' . $row->fecha);
+        }
+
+        // Adjuntar cantidad_vendida a cada registro del historial
+        $registros->each(function ($reg) use ($ventasPorCodigoFecha) {
+            $fecha = Carbon::parse($reg->fecha_impresion)->toDateString();
+            $key   = ($reg->ticket->codigo ?? '') . '|' . $fecha;
+            $reg->cantidad_vendida = (int) ($ventasPorCodigoFecha->get($key)?->total_vendido ?? 0);
+        });
 
         return view('pages.generar_tiquetes.historial', compact('registros'));
     }

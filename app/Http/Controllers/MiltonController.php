@@ -527,6 +527,9 @@ class MiltonController extends Controller
             if ($metodoPago === 'efectivo' && $montoEfectivo < $total) {
                 return response()->json(['ok' => false, 'message' => 'El monto en efectivo es insuficiente.'], 422);
             }
+            if ($metodoPago === 'mixto' && $montoEfectivo >= $total) {
+                return response()->json(['ok' => false, 'message' => 'Para pago total en efectivo, use solo el método Efectivo.'], 422);
+            }
             if ($metodoPago === 'efectivo') {
                 $vuelto = round($montoEfectivo - $total, 2);
             }
@@ -558,12 +561,16 @@ class MiltonController extends Controller
             DB::commit();
             session()->forget('pos_cart');
 
+            $montoTarjeta = ($metodoPago === 'mixto') ? round($total - $montoEfectivo, 2) : null;
+
             return response()->json([
-                'ok'      => true,
-                'message' => 'Venta procesada correctamente.',
-                'total'   => number_format($total, 2),
-                'vuelto'  => $vuelto !== null ? number_format($vuelto, 2) : null,
-                'id'      => $venta->id,
+                'ok'               => true,
+                'message'          => 'Venta procesada correctamente.',
+                'total'            => number_format($total, 2),
+                'vuelto'           => $vuelto !== null ? number_format($vuelto, 2) : null,
+                'id'               => $venta->id,
+                'monto_efectivo_fmt' => ($metodoPago === 'mixto') ? number_format($montoEfectivo, 2) : null,
+                'monto_tarjeta_fmt'  => $montoTarjeta !== null ? number_format($montoTarjeta, 2) : null,
             ]);
 
         } catch (\Throwable $e) {

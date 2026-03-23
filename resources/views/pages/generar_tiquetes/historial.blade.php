@@ -6,6 +6,8 @@
         #tablaHistorial thead { background-color: #6f42c1; color: #fff; }
         #tablaHistorial.table-striped tbody tr:nth-of-type(odd) { background-color: #ede7f6; }
         #tablaHistorial.table-hover  tbody tr:hover              { background-color: #d1c4e9; }
+        .progreso-venta { height: 4px; border-radius: 2px; margin-top: 5px; background: #e9ecef; overflow: hidden; }
+        .progreso-venta-bar { height: 100%; border-radius: 2px; }
     </style>
 @endsection
 
@@ -28,7 +30,8 @@
                             <th>#</th>
                             <th>Tiquete</th>
                             <th>Categoría</th>
-                            <th>Cantidad Impresa</th>
+                            <th>Impresos</th>
+                            <th>Vendidos ese día</th>
                             <th>Fecha y Hora</th>
                         </tr>
                     </thead>
@@ -49,12 +52,31 @@
                                     <span class="badge bg-success fs-6">{{ $reg->cantidad_impresa }}</span>
                                 </td>
                                 <td>
+                                    @php
+                                        $vendidos  = $reg->cantidad_vendida ?? 0;
+                                        $impresos  = $reg->cantidad_impresa;
+                                        $pct       = $impresos > 0 ? min(100, round($vendidos / $impresos * 100)) : 0;
+                                        $color     = $pct >= 100 ? '#198754' : ($pct >= 50 ? '#ffc107' : '#0dcaf0');
+                                    @endphp
+                                    @if($vendidos > 0)
+                                        <span class="badge fs-6" style="background-color:{{ $color }}">
+                                            {{ $vendidos }}
+                                        </span>
+                                        <div class="progreso-venta" style="width:80px;display:inline-block;vertical-align:middle;margin-left:6px;">
+                                            <div class="progreso-venta-bar" style="width:{{ $pct }}%;background-color:{{ $color }};"></div>
+                                        </div>
+                                        <small class="text-muted ms-1">{{ $pct }}%</small>
+                                    @else
+                                        <span class="badge bg-secondary">0</span>
+                                    @endif
+                                </td>
+                                <td>
                                     {{ \Carbon\Carbon::parse($reg->fecha_impresion)->format('d/m/Y H:i:s') }}
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-muted">No hay registros de generación aún.</td>
+                                <td colspan="6" class="text-muted">No hay registros de generación aún.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -73,9 +95,9 @@
     <script>
         $(document).ready(function () {
             $('#tablaHistorial').DataTable({
-                order: [[4, 'desc']],
+                order: [[5, 'desc']],
                 pageLength: 20,
-                columnDefs: [{ orderable: false, targets: [0] }],
+                columnDefs: [{ orderable: false, targets: [0, 4] }],
                 language: {
                     search: 'Buscar:',
                     lengthMenu: 'Mostrar _MENU_ registros',

@@ -141,6 +141,30 @@
     .vuelto-insuficiente { border-color: rgba(231,76,60,.4); background: rgba(231,76,60,.1); }
     .vuelto-insuficiente .vuelto-valor { color: #e74c3c; }
 
+    /* ── Sección tarjeta (pago híbrido) ────────────────────────────────── */
+    .tarjeta-box {
+        margin-top: .6rem;
+        background: rgba(13,202,240,.08);
+        border: 1px solid rgba(13,202,240,.3);
+        border-radius: .5rem;
+        padding: .5rem .85rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .tarjeta-valor {
+        font-size: 1.3rem;
+        font-weight: 900;
+        color: #0dcaf0;
+        font-variant-numeric: tabular-nums;
+    }
+    .pendiente-box {
+        margin-top: .4rem;
+        text-align: center;
+        font-size: .78rem;
+        color: rgba(255,255,255,.4);
+    }
+
     /* ── Botones de acción ─────────────────────────────────────────────── */
     .btn-procesar {
         background: linear-gradient(135deg, #00b09b, #96c93d);
@@ -253,9 +277,21 @@
 
             {{-- Sección efectivo (se muestra solo si chkEfectivo está activo) --}}
             <div id="seccionEfectivo">
-                <p class="efectivo-label mt-1">Monto recibido en efectivo</p>
+                <p class="efectivo-label mt-1" id="efectivoLabel">Monto recibido en efectivo</p>
                 <input type="number" id="montoEfectivo" min="0" step="1"
                        placeholder="0" autocomplete="off">
+
+                {{-- Tarjeta calculada (solo en modo mixto) --}}
+                <div class="tarjeta-box" id="tarjetaBox" style="display:none;">
+                    <span class="vuelto-label-txt">
+                        <i class="bi bi-credit-card-2-front me-1"></i>Tarjeta
+                    </span>
+                    <span class="tarjeta-valor" id="tarjetaValor">₡0.00</span>
+                </div>
+                <div class="pendiente-box" id="pendienteBox" style="display:none;">
+                    Resto del total cargado a tarjeta
+                </div>
+
                 <div class="vuelto-box mt-2" id="vueltoBox">
                     <span class="vuelto-label-txt">Vuelto</span>
                     <span class="vuelto-valor" id="vueltoValor">₡0.00</span>
@@ -372,7 +408,29 @@
             <p class="text-muted mb-2">Total cobrado:</p>
             <div class="exito-total mb-3" id="exitoTotal">₡0.00</div>
 
-            {{-- Vuelto (solo aparece si hubo pago en efectivo) --}}
+            {{-- Desglose mixto (efectivo + tarjeta) --}}
+            <div id="exitoDesglose" class="mb-3" style="display:none;">
+                <div class="row g-2 text-start">
+                    <div class="col-6">
+                        <div class="p-2 rounded" style="background:#d1fae5;border:1px solid #6ee7b7;">
+                            <div style="font-size:.7rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#065f46;">
+                                <i class="bi bi-cash-stack me-1"></i>Efectivo
+                            </div>
+                            <div style="font-size:1.25rem;font-weight:900;color:#059669;" id="exitoEfectivoMonto">₡0.00</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2 rounded" style="background:#e0f2fe;border:1px solid #7dd3fc;">
+                            <div style="font-size:.7rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#0c4a6e;">
+                                <i class="bi bi-credit-card-2-front me-1"></i>Tarjeta
+                            </div>
+                            <div style="font-size:1.25rem;font-weight:900;color:#0369a1;" id="exitoTarjetaMonto">₡0.00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Vuelto (solo aparece si hubo pago en efectivo puro) --}}
             <div class="exito-vuelto-box" id="exitoVueltoBox" style="display:none;">
                 <p class="exito-vuelto-label mb-0">Vuelto a entregar</p>
                 <div class="exito-vuelto-monto" id="exitoVueltoMonto">₡0.00</div>
@@ -407,14 +465,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── Estado de pago ────────────────────────────────────────────────────────
     let totalActual = {{ $total }};
 
-    const chkEfectivo  = document.getElementById('chkEfectivo');
-    const chkTarjeta   = document.getElementById('chkTarjeta');
-    const opEfectivo   = document.getElementById('opEfectivo');
-    const opTarjeta    = document.getElementById('opTarjeta');
-    const secEfectivo  = document.getElementById('seccionEfectivo');
-    const montoInput   = document.getElementById('montoEfectivo');
-    const vueltoBox    = document.getElementById('vueltoBox');
-    const vueltoValor  = document.getElementById('vueltoValor');
+    const chkEfectivo   = document.getElementById('chkEfectivo');
+    const chkTarjeta    = document.getElementById('chkTarjeta');
+    const opEfectivo    = document.getElementById('opEfectivo');
+    const opTarjeta     = document.getElementById('opTarjeta');
+    const secEfectivo   = document.getElementById('seccionEfectivo');
+    const montoInput    = document.getElementById('montoEfectivo');
+    const vueltoBox     = document.getElementById('vueltoBox');
+    const vueltoValor   = document.getElementById('vueltoValor');
+    const tarjetaBox    = document.getElementById('tarjetaBox');
+    const tarjetaValor  = document.getElementById('tarjetaValor');
+    const pendienteBox  = document.getElementById('pendienteBox');
+    const efectivoLabel = document.getElementById('efectivoLabel');
 
     function getMetodoPago() {
         const e = chkEfectivo.checked;
@@ -426,25 +488,49 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function calcularVuelto() {
+        const metodo = getMetodoPago();
         const monto  = parseFloat(montoInput.value) || 0;
-        const vuelto = monto - totalActual;
-        vueltoValor.textContent = '₡' + Math.abs(vuelto).toLocaleString('es-CR', { minimumFractionDigits: 2 });
-        if (vuelto < 0) {
-            vueltoBox.classList.add('vuelto-insuficiente');
+
+        if (metodo === 'mixto') {
+            // Modo híbrido: mostrar cuánto va a tarjeta, ocultar vuelto
+            const enTarjeta = Math.max(0, totalActual - monto);
+            tarjetaValor.textContent = '₡' + enTarjeta.toLocaleString('es-CR', { minimumFractionDigits: 2 });
+            tarjetaBox.style.display   = 'flex';
+            pendienteBox.style.display = monto > 0 ? 'block' : 'none';
+            vueltoBox.style.display    = 'none';
+            return 0;
         } else {
-            vueltoBox.classList.remove('vuelto-insuficiente');
+            // Modo efectivo puro: mostrar vuelto, ocultar tarjeta
+            tarjetaBox.style.display   = 'none';
+            pendienteBox.style.display = 'none';
+            vueltoBox.style.display    = 'flex';
+            const vuelto = monto - totalActual;
+            vueltoValor.textContent = '₡' + Math.abs(vuelto).toLocaleString('es-CR', { minimumFractionDigits: 2 });
+            vueltoBox.classList.toggle('vuelto-insuficiente', vuelto < 0);
+            return vuelto;
         }
-        return vuelto;
     }
 
     function actualizarEstadoPago() {
-        const metodo    = getMetodoPago();
-        const hayItems  = !!document.querySelector('#tbodyPos tr[id^="pos-row-"]');
+        const metodo      = getMetodoPago();
+        const hayItems    = !!document.querySelector('#tbodyPos tr[id^="pos-row-"]');
+        const conEfectivo = chkEfectivo.checked;
+        const esMixto     = metodo === 'mixto';
 
         // Mostrar/ocultar sección efectivo
-        const conEfectivo = chkEfectivo.checked;
         secEfectivo.style.display = conEfectivo ? 'block' : 'none';
-        if (!conEfectivo) montoInput.value = '';
+        if (!conEfectivo) {
+            montoInput.value = '';
+            tarjetaBox.style.display   = 'none';
+            pendienteBox.style.display = 'none';
+            vueltoBox.style.display    = 'none';
+        }
+
+        // Etiqueta según modo
+        efectivoLabel.textContent = esMixto ? 'Efectivo a recibir' : 'Monto recibido en efectivo';
+
+        // Recalcular display cuando efectivo está activo
+        if (conEfectivo) calcularVuelto();
 
         // Estilos de los cards-checkbox
         opEfectivo.classList.toggle('activo', chkEfectivo.checked);
@@ -457,8 +543,9 @@ document.addEventListener('DOMContentLoaded', () => {
             puedeProcessar = puedeProcessar && monto >= totalActual;
         }
         if (conEfectivo && metodo === 'mixto') {
+            // Efectivo debe ser mayor a 0 y menor al total (la diferencia va a tarjeta)
             const monto = parseFloat(montoInput.value) || 0;
-            puedeProcessar = puedeProcessar && monto > 0;
+            puedeProcessar = puedeProcessar && monto > 0 && monto < totalActual;
         }
 
         document.getElementById('btnProcesar').disabled = !puedeProcessar;
@@ -474,11 +561,8 @@ document.addEventListener('DOMContentLoaded', () => {
         actualizarEstadoPago();
     });
 
-    // Calcular vuelto mientras escribe
-    montoInput.addEventListener('input', () => {
-        calcularVuelto();
-        actualizarEstadoPago();
-    });
+    // Recalcular al escribir monto
+    montoInput.addEventListener('input', () => actualizarEstadoPago());
 
     // ── Scanner ───────────────────────────────────────────────────────────────
     const scannerInput = document.getElementById('scannerInput');
@@ -607,14 +691,25 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.ok) {
                 document.getElementById('exitoTotal').textContent = '₡' + data.total;
 
-                // Mostrar vuelto en modal si aplica
-                const vueltoBox  = document.getElementById('exitoVueltoBox');
-                const vueltoMonto = document.getElementById('exitoVueltoMonto');
-                if (data.vuelto !== null && data.vuelto !== undefined) {
-                    vueltoMonto.textContent = '₡' + data.vuelto;
-                    vueltoBox.style.display = 'block';
+                // Desglose mixto (efectivo + tarjeta)
+                const desgloseEl = document.getElementById('exitoDesglose');
+                if (data.monto_efectivo_fmt !== null && data.monto_efectivo_fmt !== undefined &&
+                    data.monto_tarjeta_fmt  !== null && data.monto_tarjeta_fmt  !== undefined) {
+                    document.getElementById('exitoEfectivoMonto').textContent = '₡' + data.monto_efectivo_fmt;
+                    document.getElementById('exitoTarjetaMonto').textContent  = '₡' + data.monto_tarjeta_fmt;
+                    desgloseEl.style.display = 'block';
                 } else {
-                    vueltoBox.style.display = 'none';
+                    desgloseEl.style.display = 'none';
+                }
+
+                // Vuelto (solo en efectivo puro)
+                const vueltoBoxModal = document.getElementById('exitoVueltoBox');
+                const vueltoMontoEl  = document.getElementById('exitoVueltoMonto');
+                if (data.vuelto !== null && data.vuelto !== undefined) {
+                    vueltoMontoEl.textContent = '₡' + data.vuelto;
+                    vueltoBoxModal.style.display = 'block';
+                } else {
+                    vueltoBoxModal.style.display = 'none';
                 }
 
                 new bootstrap.Modal(document.getElementById('modalExito')).show();
@@ -717,8 +812,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const count = document.querySelectorAll('#tbodyPos tr[id^="pos-row-"]').length;
         document.getElementById('itemsCount').textContent = count;
 
-        // Recalcular vuelto si hay monto ingresado
-        if (chkEfectivo.checked && montoInput.value) calcularVuelto();
         actualizarEstadoPago();
     }
 
