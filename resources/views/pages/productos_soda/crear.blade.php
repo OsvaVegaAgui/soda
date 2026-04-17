@@ -60,6 +60,23 @@
                             </div>
                         </div>
 
+                        {{-- Códigos de barras adicionales --}}
+                        <div class="col-12 mb-3">
+                            <hr class="my-2">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-upc me-1"></i>Códigos de barras adicionales
+                                <span class="text-muted fw-normal small ms-1">(opcional)</span>
+                            </label>
+                            <p class="text-muted small mb-2">
+                                Úsalos cuando varios productos comparten el mismo nombre y precio pero tienen códigos distintos
+                                (ej: Gaseosa → Coca, Fresca, Fanta).
+                            </p>
+                            <div id="listaCodigosAdicionales"></div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary mt-1" id="btnAgregarCodigo">
+                                <i class="bi bi-plus-circle me-1"></i>Agregar código
+                            </button>
+                        </div>
+
                         <div class="col-12 mt-3">
                             <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-plus-circle me-1"></i> Agregar Producto

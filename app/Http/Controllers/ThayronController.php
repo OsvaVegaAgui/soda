@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
 use App\Models\ProductoSoda;
+use App\Models\ProductoSodaCodigo;
 use App\Http\Controllers\RicardoController;
 
 class ThayronController extends Controller
@@ -54,7 +57,36 @@ class ThayronController extends Controller
             'activo.required' => 'Debe seleccionar el estado del producto.',
         ]);
 
+        // Validar códigos adicionales (opcional)
+        $codigosRaw = collect($request->input('codigos_adicionales', []))
+            ->map(fn($c) => trim($c))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($codigosRaw->isNotEmpty()) {
+            $codigosValidator = Validator::make(
+                ['codigos_adicionales' => $codigosRaw->all()],
+                ['codigos_adicionales.*' => ['string', 'max:50', 'distinct', Rule::unique('producto_soda_codigos', 'codigo_barras')]],
+                ['codigos_adicionales.*.unique' => 'Uno de los códigos adicionales ya está en uso por otro producto.']
+            );
+            if ($codigosValidator->fails()) {
+                if ($request->ajax()) {
+                    return response()->json(['message' => 'Revise los códigos adicionales.', 'errors' => $codigosValidator->errors()], 422);
+                }
+                return back()->withErrors($codigosValidator)->withInput();
+            }
+        }
+
         $producto = ProductoSoda::create($validated);
+
+        // Guardar códigos adicionales
+        foreach ($codigosRaw as $codigo) {
+            ProductoSodaCodigo::create([
+                'producto_soda_id' => $producto->id_producto_soda,
+                'codigo_barras'    => $codigo,
+            ]);
+        }
 
         try {
             (new RicardoController)->insertar(
@@ -89,7 +121,7 @@ class ThayronController extends Controller
 
     protected function editar($id)
     {
-        $soda = ProductoSoda::findOrFail($id);
+        $soda = ProductoSoda::with('codigosAdicionales')->findOrFail($id);
         return view('pages.productos_soda.editar', compact('soda'));
     }
 
@@ -116,10 +148,43 @@ class ThayronController extends Controller
             ], 422);
         }
 
+        // Validar códigos adicionales
+        $codigosRaw = collect($request->input('codigos_adicionales', []))
+            ->map(fn($c) => trim($c))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($codigosRaw->isNotEmpty()) {
+            $codigosValidator = Validator::make(
+                ['codigos_adicionales' => $codigosRaw->all()],
+                ['codigos_adicionales.*' => [
+                    'string', 'max:50', 'distinct',
+                    Rule::unique('producto_soda_codigos', 'codigo_barras')
+                        ->where(fn($q) => $q->where('producto_soda_id', '!=', $id)),
+                ]],
+                ['codigos_adicionales.*.unique' => 'Uno de los códigos adicionales ya está en uso por otro producto.']
+            );
+            if ($codigosValidator->fails()) {
+                return response()->json(['message' => 'Revise los códigos adicionales.', 'errors' => $codigosValidator->errors()], 422);
+            }
+        }
+
         try {
             $soda = ProductoSoda::findOrFail($id);
             $soda->fill($request->only(['nombre', 'codigo_softland', 'codigo_barras', 'precio', 'activo']));
             $soda->save();
+
+            // Sincronizar códigos adicionales: borrar los anteriores e insertar los nuevos
+            DB::transaction(function () use ($soda, $codigosRaw) {
+                $soda->codigosAdicionales()->delete();
+                foreach ($codigosRaw as $codigo) {
+                    ProductoSodaCodigo::create([
+                        'producto_soda_id' => $soda->id_producto_soda,
+                        'codigo_barras'    => $codigo,
+                    ]);
+                }
+            });
 
             return response()->json([
                 'ok'      => true,

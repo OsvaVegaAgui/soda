@@ -22,6 +22,11 @@ class ProductoSoda extends Model
         'activo' => 'boolean',
     ];
 
+    public function codigosAdicionales()
+    {
+        return $this->hasMany(ProductoSodaCodigo::class, 'producto_soda_id', 'id_producto_soda');
+    }
+
     public function scopeActivos($query)
     {
         return $query->where('activo', true);

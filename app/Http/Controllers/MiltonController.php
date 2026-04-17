@@ -9,6 +9,7 @@ use App\Models\Venta;
 use App\Models\User;
 use App\Models\DetalleVenta;
 use App\Models\ProductoSoda;
+use App\Models\ProductoSodaCodigo;
 use App\Models\Ticket;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -590,6 +591,7 @@ class MiltonController extends Controller
     {
         if ($codigo === '') return null;
 
+        // 1. Buscar por codigo_softland o codigo_barras principal
         $soda = ProductoSoda::where('activo', true)
             ->where(function ($q) use ($codigo) {
                 $q->where('codigo_softland', $codigo)
@@ -602,6 +604,20 @@ class MiltonController extends Controller
                 'codigo' => $soda->codigo_softland ?? $soda->codigo_barras,
                 'nombre' => $soda->nombre,
                 'precio' => $soda->precio ?? 0,
+            ];
+        }
+
+        // 2. Buscar en códigos adicionales (múltiples barcodes por producto)
+        $extra = ProductoSodaCodigo::where('codigo_barras', $codigo)
+            ->with(['producto' => fn($q) => $q->where('activo', true)])
+            ->first();
+
+        if ($extra && $extra->producto) {
+            $p = $extra->producto;
+            return [
+                'codigo' => $p->codigo_softland ?? $p->codigo_barras,
+                'nombre' => $p->nombre,
+                'precio' => $p->precio ?? 0,
             ];
         }
 

@@ -102,6 +102,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // ── Códigos de barras adicionales ────────────────────────────────────────
+    const listaCodigos  = document.getElementById('listaCodigosAdicionales');
+    const btnAgregar    = document.getElementById('btnAgregarCodigo');
+
+    function agregarFilaCodigo(valor = '') {
+        if (!listaCodigos) return;
+        const div = document.createElement('div');
+        div.className = 'd-flex gap-2 mb-2 fila-codigo-adicional';
+        div.innerHTML =
+            `<input type="text" name="codigos_adicionales[]" class="form-control" ` +
+            `placeholder="Código de barras" maxlength="50" value="${valor.replace(/"/g, '&quot;')}">` +
+            `<button type="button" class="btn btn-outline-danger btn-sm btn-quitar-codigo">` +
+            `<i class="bi bi-trash"></i></button>`;
+        listaCodigos.appendChild(div);
+        div.querySelector('input').focus();
+    }
+
+    if (btnAgregar) {
+        btnAgregar.addEventListener('click', () => agregarFilaCodigo());
+    }
+
+    // Delegación: quitar fila
+    if (listaCodigos) {
+        listaCodigos.addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-quitar-codigo');
+            if (btn) btn.closest('.fila-codigo-adicional').remove();
+        });
+    }
+
     // ── Formulario ELIMINAR (delegado desde lista) ────────────────────────────
     document.addEventListener('submit', async (e) => {
         const formEliminar = e.target.closest('.form-eliminar-producto');
