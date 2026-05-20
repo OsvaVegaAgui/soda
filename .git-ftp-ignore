@@ -1,0 +1,15 @@
+public/
+node_modules/
+.env
+my_files/
+tests/
+storage/logs/
+storage/framework/cache/
+storage/framework/sessions/
+storage/framework/views/
+.git/
+README.md
+phpunit.xml
+vite.config.js
+package.json
+package-lock.json

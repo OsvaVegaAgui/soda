@@ -11,7 +11,13 @@
       "Bash(composer require:*)",
       "Bash(python3:*)",
       "Bash(npm run:*)",
-      "Bash(grep -E \"\\\\.php$\")"
+      "Bash(grep -E \"\\\\.php$\")",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\laragon\\\\www\\\\soda\" -Force | Format-Table Name, @{N='Type';E={if\\($_.PSIsContainer\\){'DIR'}else{'FILE'}}} -AutoSize)",
+      "Bash(pandoc --version)",
+      "Bash(python -c \"import docx; print\\('python-docx ok'\\)\")",
+      "Bash(python generar_manual.py)",
+      "Bash(dir C:\\\\laragon\\\\www\\\\soda /b)",
+      "Bash(git config *)"
     ]
   }
 }
