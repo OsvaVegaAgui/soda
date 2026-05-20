@@ -116,7 +116,7 @@
     <div class="header">
         <div class="header-top">
             <div>
-                <div class="empresa">Sistema Soda</div>
+                <div class="empresa">SODA IAC</div>
                 <div class="subtitulo">Gestión de Ventas y Cajas</div>
             </div>
             <div class="generado">
@@ -198,7 +198,7 @@
 
     {{-- Pie --}}
     <div class="footer">
-        <span>Sistema Soda — Reporte de Caja por Usuario</span>
+        <span>SODA IAC — Reporte de Caja por Usuario</span>
         <span>{{ $generadoEn }}</span>
     </div>
 

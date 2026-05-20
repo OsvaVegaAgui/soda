@@ -116,7 +116,7 @@
 
       <!-- HEADER -->
       <div class="header">
-        <h2>Soda IACSA</h2>
+        <h2>SODA IAC</h2>
         <h1>Restablecimiento de contraseña</h1>
       </div>
 
@@ -150,7 +150,7 @@
 
       <!-- FOOTER -->
       <div class="footer">
-        © {{ date('Y') }} Soda IACSA · Sistema de Recuperación  
+        © {{ date('Y') }} SODA IAC · Sistema de Recuperación
       </div>
 
     </div>

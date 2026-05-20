@@ -3,8 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Menú Semanal · Soda IACSA</title>
-    <meta name="description" content="Menú semanal de la Soda ETAI — Desayuno, Almuerzo y Refrigerio">
+    <title>Menú Semanal · SODA IAC</title>
+    <meta name="description" content="Menú semanal de la SODA IAC — Desayuno, Almuerzo y Refrigerio">
 
     <link rel="icon" type="image/png" href="{{ asset('site/img/breakfast.png') }}">
 
@@ -35,7 +35,7 @@
             <div class="nav-inner">
                 <img src="{{ asset('build/assets/images/Logo.png') }}" alt="Logo ETAI" class="nav-logo">
                 <div>
-                    <div class="nav-brand-title">Soda IACSA</div>
+                    <div class="nav-brand-title">SODA IAC</div>
                     <div class="nav-brand-sub">Instituto Agropecuario Costarricense</div>
                 </div>
             </div>
@@ -117,7 +117,7 @@
     {{-- ── FOOTER ──────────────────────────────────────────────────────── --}}
     <footer class="main-footer">
         <div class="container">
-            <p class="footer-brand">Soda · IACSA</p>
+            <p class="footer-brand">SODA IAC</p>
             <p>¡Buen provecho! &nbsp;<i class="fas fa-face-smile"></i></p>
         </div>
     </footer>
