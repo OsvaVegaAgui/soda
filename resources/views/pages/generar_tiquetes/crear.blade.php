@@ -161,14 +161,22 @@ document.addEventListener('DOMContentLoaded', () => {
             btnGen.disabled = true;
             btnGen.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generando PDF...';
 
+            function resetBtn() {
+                clearInterval(poller);
+                clearTimeout(fallback);
+                btnGen.disabled = false;
+                btnGen.innerHTML = '<i class="bi bi-file-earmark-pdf me-1"></i> Generar PDF';
+            }
+
             const poller = setInterval(() => {
                 if (document.cookie.split(';').some(c => c.trim() === 'pdf_ready=' + token)) {
                     document.cookie = 'pdf_ready=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
-                    clearInterval(poller);
-                    btnGen.disabled = false;
-                    btnGen.innerHTML = '<i class="bi bi-file-earmark-pdf me-1"></i> Generar PDF';
+                    resetBtn();
                 }
             }, 500);
+
+            // Fallback: restaurar el botón a los 30 segundos sin importar qué pasó
+            const fallback = setTimeout(resetBtn, 30000);
         });
     }
 

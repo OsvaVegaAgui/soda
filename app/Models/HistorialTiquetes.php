@@ -15,10 +15,12 @@ class HistorialTiquetes extends Model
         'id_ticket',
         'user_id',
         'cantidad_impresa',
+        'fecha_servicio',
     ];
 
     protected $casts = [
         'fecha_impresion' => 'datetime',
+        'fecha_servicio'  => 'date',
         'cantidad_impresa' => 'integer',
     ];
 

@@ -78,11 +78,17 @@ class OsvaldoController extends Controller
             $ticket = Ticket::with('categoria')->find($idTicket);
             if (!$ticket) continue;
 
+            // Cuántos tiquetes de este producto ya se imprimieron para esta fecha de servicio
+            $yaImpresos = HistorialTiquetes::where('id_ticket', $ticket->id_ticket)
+                ->where('fecha_servicio', $fecha->toDateString())
+                ->sum('cantidad_impresa');
+
             // Guardar historial
             HistorialTiquetes::create([
                 'id_ticket'        => $ticket->id_ticket,
                 'user_id'          => auth()->id(),
                 'cantidad_impresa' => $cantidad,
+                'fecha_servicio'   => $fecha->toDateString(),
             ]);
 
             // Idéntico al tutorial que funciona: PNG binario → base64
@@ -90,12 +96,13 @@ class OsvaldoController extends Controller
                 $generator->getBarcode($ticket->codigo, $generator::TYPE_CODE_128)
             );
 
-            // Agregar N copias al PDF
+            // Agregar N copias al PDF con numeración correlativa por producto y día
             for ($i = 0; $i < $cantidad; $i++) {
                 $ticketsParaPDF[] = [
                     'nombre'  => $ticket->nombre,
                     'fecha'   => $fecha->format('d/m/Y'),
                     'barcode' => $barcode,
+                    'numero'  => $yaImpresos + $i + 1,
                 ];
             }
         }
@@ -113,7 +120,7 @@ class OsvaldoController extends Controller
 
         if ($token) {
             $response->headers->setCookie(
-                cookie('pdf_ready', $token, 0, '/', null, false, false)
+                cookie('pdf_ready', $token, 2, '/', null, false, false)
             );
         }
 

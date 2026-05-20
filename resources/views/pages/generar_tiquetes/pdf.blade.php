@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        * { margin: 0; padding: 0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: Arial, Helvetica, sans-serif;
@@ -25,16 +25,26 @@
 
         .tiquete {
             border: 2px solid #000;
-            padding: 16px 6px;
+            padding: 6px 6px 8px 6px;
             text-align: center;
+            height: 88px;
+            overflow: hidden;
+        }
+
+        .tiq-numero {
+            font-size: 8px;
+            color: #000;
+            text-align: center;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
         }
 
         .tiq-nombre {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: bold;
             color: #000;
-            margin-bottom: 8px;
-            line-height: 1.2;
+            margin-bottom: 6px;
+            line-height: 1.15;
         }
 
         .tiq-barcode {
@@ -42,7 +52,7 @@
         }
 
         .tiq-fecha {
-            font-size: 13px;
+            font-size: 12px;
             color: #000;
         }
 
@@ -57,6 +67,7 @@
             @foreach ($fila as $t)
                 <td>
                     <div class="tiquete">
+                        <div class="tiq-numero">{{ $t['numero'] }}</div>
                         <div class="tiq-nombre">{{ $t['nombre'] }}</div>
                         <div class="tiq-barcode"><img src="data:image/png;base64,{{ $t['barcode'] }}"></div>
                         <div class="tiq-fecha">{{ $t['fecha'] }}</div>
