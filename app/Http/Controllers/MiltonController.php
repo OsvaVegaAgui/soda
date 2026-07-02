@@ -25,6 +25,8 @@ class MiltonController extends Controller
         switch ($accion) {
             case 'registrar':
                 return $this->registrar($request);
+            case 'registrar-pdf':
+                return $this->registrarPdf($request);
             case 'agregar':
                 return $this->agregar($request);
             case 'quitar':
@@ -76,6 +78,28 @@ class MiltonController extends Controller
         $totalGeneral = $items->sum('total_monto');
 
         return view('pages.ventas.registrar', compact('items', 'fecha', 'totalGeneral'));
+    }
+
+    protected function registrarPdf(Request $request)
+    {
+        $fecha = $request->input('fecha', now()->toDateString());
+
+        $ventaIds = Venta::where('fecha', $fecha)->pluck('id');
+
+        $items = DetalleVenta::whereIn('venta_id', $ventaIds)
+            ->selectRaw('codigo, nombre, SUM(cantidad_vendida) as total_cantidad, SUM(subtotal) as total_monto')
+            ->groupBy('codigo', 'nombre')
+            ->orderBy('nombre')
+            ->get();
+
+        $totalGeneral = $items->sum('total_monto');
+        $generadoEn   = Carbon::now()->translatedFormat('d \d\e F Y, H:i');
+        $vendedor     = auth()->user()->name ?? '—';
+
+        $pdf = Pdf::loadView('pages.ventas.registrar_pdf', compact('items', 'fecha', 'totalGeneral', 'generadoEn', 'vendedor'))
+                  ->setPaper('a4', 'portrait');
+
+        return $pdf->download('resumen_ventas_' . $fecha . '.pdf');
     }
 
     // ── Agregar o incrementar un producto (AJAX) ──────────────────────────────

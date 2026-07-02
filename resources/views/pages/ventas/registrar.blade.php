@@ -17,9 +17,15 @@
                 <div class="card-title">
                     <i class="bi bi-bar-chart-line me-2"></i>Resumen del Día
                 </div>
-                <a href="{{ route('ventas', ['accion' => 'lista']) }}" class="btn btn-sm btn-outline-secondary">
-                    <i class="bi bi-list-ul me-1"></i>Historial de Ventas
-                </a>
+                <div class="d-flex gap-2">
+                    <a href="{{ route('ventas', ['accion' => 'registrar-pdf', 'fecha' => $fecha]) }}"
+                       class="btn btn-sm btn-danger" target="_blank">
+                        <i class="bi bi-file-earmark-pdf me-1"></i>Descargar PDF
+                    </a>
+                    <a href="{{ route('ventas', ['accion' => 'lista']) }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-list-ul me-1"></i>Historial de Ventas
+                    </a>
+                </div>
             </div>
 
             <div class="card-body">
