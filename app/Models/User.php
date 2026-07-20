@@ -29,6 +29,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'rol'               => 'integer',
             'activo'            => 'boolean',
             'reset_token_date'  => 'datetime',
         ];

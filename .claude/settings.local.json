@@ -17,7 +17,11 @@
       "Bash(python -c \"import docx; print\\('python-docx ok'\\)\")",
       "Bash(python generar_manual.py)",
       "Bash(dir C:\\\\laragon\\\\www\\\\soda /b)",
-      "Bash(git config *)"
+      "Bash(git config *)",
+      "Skill(artifact-design)",
+      "Artifact",
+      "Bash(mysql --version)",
+      "Bash(mysql *)"
     ]
   }
 }
