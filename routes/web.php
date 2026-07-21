@@ -23,6 +23,10 @@ Route::get('/', function () {
     return auth()->check() ? redirect('index') : redirect()->route('usuarios', ['accion' => 'login']);
 });
 
+Route::prefix('menu-site')->controller(LuisController::class)->group(function () {
+    Route::match(['GET','POST'], '/{accion}/{id?}', 'resolver')->name('menu-site');
+});
+
 // ── Rutas protegidas (requieren login) ────────────────────────────────────────
 Route::middleware('auth')->group(function () {
 
@@ -46,10 +50,6 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('generar-ticketes')->controller(OsvaldoController::class)->group(function () {
         Route::match(['GET','POST'], '/{accion}/{id?}', 'resolver')->name('generar-ticketes');
-    });
-
-    Route::prefix('menu-site')->controller(LuisController::class)->group(function () {
-        Route::match(['GET','POST'], '/{accion}/{id?}', 'resolver')->name('menu-site');
     });
 
     Route::prefix('menu-admin')->controller(MenuAdminController::class)->group(function () {
