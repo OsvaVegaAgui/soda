@@ -67,7 +67,11 @@ class MiltonController extends Controller
     {
         $fecha = $request->input('fecha', now()->toDateString());
 
-        $ventaIds = Venta::where('fecha', $fecha)->pluck('id');
+        $ventaQuery = Venta::where('fecha', $fecha);
+        if (auth()->user()->rol === 2) {
+            $ventaQuery->where('user_id', auth()->id());
+        }
+        $ventaIds = $ventaQuery->pluck('id');
 
         $items = DetalleVenta::whereIn('venta_id', $ventaIds)
             ->selectRaw('codigo, nombre, SUM(cantidad_vendida) as total_cantidad, SUM(subtotal) as total_monto')
@@ -84,7 +88,11 @@ class MiltonController extends Controller
     {
         $fecha = $request->input('fecha', now()->toDateString());
 
-        $ventaIds = Venta::where('fecha', $fecha)->pluck('id');
+        $ventaQuery = Venta::where('fecha', $fecha);
+        if (auth()->user()->rol === 2) {
+            $ventaQuery->where('user_id', auth()->id());
+        }
+        $ventaIds = $ventaQuery->pluck('id');
 
         $items = DetalleVenta::whereIn('venta_id', $ventaIds)
             ->selectRaw('codigo, nombre, SUM(cantidad_vendida) as total_cantidad, SUM(subtotal) as total_monto')
@@ -119,8 +127,7 @@ class MiltonController extends Controller
 
         $hoy   = now()->toDateString();
         $venta = Venta::firstOrCreate(
-            ['fecha' => $hoy],
-            ['user_id' => auth()->id()]
+            ['fecha' => $hoy, 'user_id' => auth()->id()]
         );
 
         $detalle = DetalleVenta::where('venta_id', $venta->id)
